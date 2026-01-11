@@ -42,6 +42,14 @@ const char *HeartBeat::ui_features[] = {
 namespace HeartBeat{
     void HeartBeatObj::Start(){
         HeartBeat::DataSource::getInstance()->SetDisplayWanted(true);
+        
+        if(!isQountersMode){
+            for(auto & t : enabledUIToggles){
+                for(auto anmt : loadedComponents.animators){
+                    anmt->SetBool(t, true);
+                }
+            }
+        }
     }
 
     void HeartBeatObj::OnDestroy(){
@@ -198,7 +206,12 @@ namespace HeartBeat{
                     if(infos.contains("feature")){
                         unsupported_features = GetFeatures(infos["feature"]);
                     }
-                    
+
+                    std::set<std::string> ui_toggles;
+                    if(infos.contains("toggle")){
+                        ui_toggles = GetFeatures(infos["toggle"]);
+                    }
+
                     for(const char ** feature = ui_features; *feature; feature++){
                         auto it = unsupported_features.find(*feature);
                         if(it != unsupported_features.end()){
@@ -213,7 +226,14 @@ namespace HeartBeat{
                             getLogger().info("    feature unsupported: {}", feature);
                         }
                     }
-                    loadedBundles.insert({name, {filepath, assetPath, std::move(infos), std::move(supported_features), std::move(unsupported_features)}});
+                    loadedBundles.insert({name, {
+                        filepath, 
+                        assetPath, 
+                        std::move(infos), 
+                        std::move(supported_features), 
+                        std::move(unsupported_features),
+                        std::move(ui_toggles)
+                    }});
                 }
             }
             getLogger().info("bundle load over");

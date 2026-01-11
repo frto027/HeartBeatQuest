@@ -79,3 +79,5 @@ V(your_setthings_is_in_another_menu, "Thank you Player! But data-source config i
 V(ui_not_avaliable_in_qounter, "Heart UI not avaliable in qounters. Please add HeartRate text source at qounters.")
 V(ignore_qounters, "Ignore Qounters++ mod")
 V(ignore_qounters_hint, "please enable this if Qounters++ is disabled. If enabled, Qounters++ may not work with this mod.")
+
+V(ui_options, "UI Options")

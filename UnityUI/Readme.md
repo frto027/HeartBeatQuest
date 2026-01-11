@@ -103,6 +103,10 @@ You can set multiple prefabs to a same AssetBundle value, and they will be packe
 
 Then use `Assets > Build AssetBundles` to export the asset bundle. Remember to add a suffix `.bundle` for the generated file manually, the game will filter other files.
 
+# UI Options Feature
+
+You can add some toggle to your UI with `toggle:xxx` under the info. The value `xxx` will be show at the mod setthings menu. And the animation boolean parameter `xxx` will be checked if player selected the toggle.
+
 # About the `feature:xxx` object
 
 You don't have to do this but you are suggested to. This is for compatibility. For example, if your UI has a child info called `feature:abc`, the mod version that doesn't support the feature `abc` will shows a mod update warning to player when they are trying to load this UI.

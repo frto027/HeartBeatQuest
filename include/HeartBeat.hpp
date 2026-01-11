@@ -20,6 +20,8 @@ struct AssetUI{
     std::map<std::string, std::string> infos;
     std::set<std::string> supported_features;
     std::set<std::string> unsupported_features;
+
+    std::set<std::string> uiOptionsToggle;
 };
 
 struct AssetBundleInstinateInformation{
@@ -56,6 +58,7 @@ DECLARE_CLASS_CODEGEN(HeartBeat, HeartBeatObj, UnityEngine::MonoBehaviour){
 public:
     AssetBundleInstinateInformation loadedComponents;
     HMUI::CurvedTextMeshPro * serverMessageDisplayer = nullptr;
+    std::set<std::string> enabledUIToggles;
     bool isQountersMode;
 #if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0) || defined(GAME_VER_1_37_0)
 );

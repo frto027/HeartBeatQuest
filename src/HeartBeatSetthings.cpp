@@ -13,8 +13,11 @@
 #include "UnityEngine/RenderMode.hpp"
 #include "UnityEngine/RectTransform.hpp"
 #include "UnityEngine/Application.hpp"
+#include "UnityEngine/UI/ContentSizeFitter.hpp"
+#include "UnityEngine/zzzz__RectOffset_def.hpp"
 #include "beatsaber-hook/shared/utils/il2cpp-utils-methods.hpp"
 #include "beatsaber-hook/shared/utils/typedefs-string.hpp"
+#include "bsml/shared/BSML-Lite/Creation/Layout.hpp"
 #include "bsml/shared/BSML-Lite/Creation/Settings.hpp"
 #include "bsml/shared/BSML-Lite/Creation/Text.hpp"
 #include "bsml/shared/BSML/Components/CustomListTableData.hpp"
@@ -99,9 +102,37 @@ namespace SetthingUI{
         if(firstActivation) {
             HeartBeat::assetBundleMgr.Init();
             setthings_controller = self;
-            // Create a container that has a scroll bar
-            auto *container = BSML::Lite::CreateScrollableSettingsContainer(self->get_transform());
+            auto setthings_hori_group = BSML::Lite::CreateHorizontalLayoutGroup(self->get_transform());
+            setthings_hori_group->GetComponentInChildren<UnityEngine::UI::LayoutElement*>()->set_preferredHeight(70);
 
+            // Create a container that has a scroll bar
+            auto *container = BSML::Lite::CreateScrollableSettingsContainer(setthings_hori_group->get_transform());
+            container->GetComponent<UnityEngine::RectTransform*>()->set_sizeDelta(UnityEngine::Vector2{70, 50});
+
+            static UnityEngine::GameObject *uiOptionContainer = nullptr;
+            uiOptionContainer = BSML::Lite::CreateScrollableSettingsContainer(setthings_hori_group->get_transform());
+            uiOptionContainer->GetComponent<UnityEngine::RectTransform*>()->set_sizeDelta(UnityEngine::Vector2{50, 50});
+
+            static std::vector<UnityEngine::GameObject *> objects;
+            BSML::Lite::CreateText(uiOptionContainer->get_transform(), "UI Options", 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50,4});
+
+            static auto init_ui_options = [](std::set<std::string> newUIOptions){
+                auto enabledOptions = HeartBeat::getEnabledUIOptions();
+                auto createUIOption = [&enabledOptions](std::string uiOption){
+                    return BSML::Lite::CreateToggle(uiOptionContainer->get_transform(), uiOption, enabledOptions.contains(uiOption), [uiOption](bool v){
+                        HeartBeat::setEnabledUIOptions(uiOption, v);
+                    });
+                };
+
+                for(auto rect : objects){
+                    UnityEngine::GameObject::DestroyObject(rect);
+                }
+                objects.clear();
+
+                for(auto & opt : newUIOptions){
+                    objects.push_back(createUIOption(opt)->get_gameObject());
+                }
+            };
 
             BSML::Lite::CreateText(container->get_transform(),LANG->mod_version, 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 4});
             BSML::Lite::CreateText(container->get_transform(),LANG->for_game, 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 8});
@@ -237,11 +268,19 @@ namespace SetthingUI{
                             }
                         }
                         feature_unsupport_hint_ui->set_text(supported ? "" : LANG->unsupported_feature_udpatre_mod);
-
                         EnsurePreviewObject();
+
+                        HeartBeat::clearEnabledUIOptions();
+                        if(HeartBeat::assetBundleMgr.loadedBundles.contains(getModConfig().SelectedUI.GetValue())){
+                            init_ui_options(HeartBeat::assetBundleMgr.loadedBundles[getModConfig().SelectedUI.GetValue()].uiOptionsToggle);
+                        }
                     }
                 }
             );
+            if(HeartBeat::assetBundleMgr.loadedBundles.contains(getModConfig().SelectedUI.GetValue())){
+                init_ui_options(HeartBeat::assetBundleMgr.loadedBundles[getModConfig().SelectedUI.GetValue()].uiOptionsToggle);
+            }
+
 
             feature_unsupport_hint_ui = BSML::Lite::CreateText(container->get_transform(), "", 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 4});
             feature_unsupport_hint_ui->set_color(UnityEngine::Color::get_red());
@@ -828,5 +867,23 @@ namespace SetthingUI{
                 SetthingUI::PulsoidSource::DidDevicesActivate);
 
         }
+    }
+}
+
+
+namespace HeartBeat {
+    std::set<std::string> getEnabledUIOptions(){
+        return getModConfig().EnabledUIOptions.GetValue();
+    }
+    void setEnabledUIOptions(std::string opt, bool v){
+        auto ov = getModConfig().EnabledUIOptions.GetValue();
+        if(v)
+            ov.insert(opt);
+        else
+            ov.erase(opt);
+        getModConfig().EnabledUIOptions.SetValue(ov, true);
+    }
+    void clearEnabledUIOptions(){
+        getModConfig().EnabledUIOptions.SetValue({});
     }
 }

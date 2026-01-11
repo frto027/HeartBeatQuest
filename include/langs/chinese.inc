@@ -71,3 +71,5 @@ V(your_setthings_is_in_another_menu, "谢谢你玩家! 但数据源设置在另�
 V(ui_not_avaliable_in_qounter, "心率UI在Qounters++启用时不支持！请在Qounters++中设置HeartRate文本。")
 V(ignore_qounters, "忽略Qounters++模组")
 V(ignore_qounters_hint, "如果禁用了Qounters++，请启用此选项。启用后此模组可能无法与Qounters++联动。")
+
+V(ui_options, "UI选项")

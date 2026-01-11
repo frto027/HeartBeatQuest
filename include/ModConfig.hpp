@@ -42,8 +42,16 @@ DECLARE_CONFIG(ModConfig){
     CONFIG_VALUE(HypeRateWebSocketIdentity, std::string, "HypeRateWebsocketIdentity", "")
 
     CONFIG_VALUE(IgnoreQounters, bool, "IgnoreQounters", false)
+
+    CONFIG_VALUE(EnabledUIOptions, std::set<std::string>, "EnabledUIToggle", {})
 #if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0) || defined(GAME_VER_1_37_0)
 );
 #else
 };
 #endif
+
+namespace HeartBeat{
+    std::set<std::string> getEnabledUIOptions();
+    void setEnabledUIOptions(std::string, bool);
+    void clearEnabledUIOptions();
+}
