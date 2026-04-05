@@ -21,6 +21,7 @@ DECLARE_CLASS_CODEGEN(HeartBeat, ModObject, UnityEngine::MonoBehaviour){
 );
 #else
 };
+#endif
 
 namespace HeartBeat{
 
@@ -28,5 +29,3 @@ namespace HeartBeat{
     void RunInUnityThreadLater(std::function<void(void)>);
 
 }
-
-#endif
