@@ -1,3 +1,5 @@
+#pragma once
+
 namespace HeartBeat{
     namespace ApiInternal{
         // call this function every frame at least once if you need to use the api

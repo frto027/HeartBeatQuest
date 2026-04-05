@@ -112,16 +112,9 @@ target_include_directories(${COMPILE_ID} PUBLIC ${SHARED_DIR})
 # codegen includes 
 target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/${CODEGEN_ID}/include)
 
-# curl includes
-target_include_directories(${COMPILE_ID} PRIVATE third_party/curl/include)
-target_link_libraries(${COMPILE_ID} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/build_third_party/curl/lib/libcurl.a)
-add_compile_definitions("-DCURL_STATICLIB")
-
-# websocketpp
-target_include_directories(${COMPILE_ID} PRIVATE third_party/websocketpp)
-
-# asio (dep of websocketpp)
-target_include_directories(${COMPILE_ID} PRIVATE third_party/asio/asio/include)
+# libhv includes
+target_include_directories(${COMPILE_ID} PRIVATE build_third_party/libhv/include)
+target_link_libraries(${COMPILE_ID} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/build_third_party/libhv/lib/libhv.a)
 
 target_link_libraries(${COMPILE_ID} PRIVATE -llog)
 # add extern stuff like libs and other includes

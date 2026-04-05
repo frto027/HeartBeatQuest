@@ -1,8 +1,6 @@
 #pragma once
 
 #include "config-utils/shared/config-utils.hpp"
-#include "UnityEngine/Color.hpp"
-#include "UnityEngine/Vector3.hpp"
 #include <string>
 
 // Declare the mod config as "ModConfiguration" and declare all its values and functions.

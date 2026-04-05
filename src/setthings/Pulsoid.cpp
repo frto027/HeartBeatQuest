@@ -1,6 +1,6 @@
-#include "data_sources/Pulsoid.hpp"
 #include "ModConfig.hpp"
 #include "main.hpp"
+#include "data_sources/Pulsoid.hpp"
 #include "settings/PulsoidSettings.hpp"
 #include "settings/Settings.hpp"
 

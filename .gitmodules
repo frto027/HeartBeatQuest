@@ -7,3 +7,6 @@
 [submodule "third_party/websocketpp"]
 	path = third_party/websocketpp
 	url = https://github.com/zaphoyd/websocketpp.git
+[submodule "third_party/libhv"]
+	path = third_party/libhv
+	url = https://github.com/ithewei/libhv.git

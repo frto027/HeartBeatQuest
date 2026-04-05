@@ -1,5 +1,4 @@
 #include <atomic>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -24,21 +23,20 @@
 #include "beatsaber-hook/shared/rapidjson/include/rapidjson/document.h"
 #include "beatsaber-hook/shared/rapidjson/include/rapidjson/stringbuffer.h"
 #include "beatsaber-hook/shared/rapidjson/include/rapidjson/writer.h"
+#include "hv/HttpMessage.h"
+#include "hv/hloop.h"
 #include "i18n.hpp"
 #include "main.hpp"
-
-#define ASIO_STANDALONE
-#include <websocketpp/config/asio_no_tls_client.hpp>
-
-#include <websocketpp/client.hpp>
-#include <websocketpp/connection.hpp>
-#include <websocketpp/frame.hpp>
 
 #include <sys/system_properties.h>
 #include "data_sources/Hyperate.hpp"
 
 #include "data_sources/remote_config.hpp"
 #include "UIManager.hpp"
+
+#include "hvdriver.hpp"
+#include "hv/WebSocketClient.h"
+
 /*
 
 You know you won't copy these code to get heart rate in other project
@@ -48,10 +46,6 @@ If you have similar needs, please contact HypeRate official, they are kind peopl
 */
 namespace HeartBeat{
 
-typedef websocketpp::client<websocketpp::config::asio_client> client;
-
-static client endpoint;
-
 HeartBeatHypeRateDataSource::HeartBeatHypeRateDataSource():DataSource(DataSourceType::DS_HypeRate){
     {
         std::lock_guard<std::mutex> g(Recorder::heartDeviceNameLock);
@@ -60,8 +54,6 @@ HeartBeatHypeRateDataSource::HeartBeatHypeRateDataSource():DataSource(DataSource
     this->CreateSocket();
 }
 
-static client::connection_ptr con = nullptr;
-static client::timer_ptr the_timer = nullptr;
 static time_t last_ping_time = 0;
 static bool con_opened = false;
 
@@ -123,118 +115,77 @@ static std::function<void(std::error_code)> timer_impl;
 static int current_retry_time_already = 0;
 void HeartBeatHypeRateDataSource::CreateSocket(){
 
-    endpoint.set_access_channels(websocketpp::log::alevel::all);
-    endpoint.set_error_channels(websocketpp::log::elevel::all);
-    {
-        char ua_buff[1024];
-        std::string identity = CheckHypeRateWebSocketIdentity();
-        sprintf(ua_buff, "%s %s %s", "HeartBeatQuest/" VERSION " BeatSaber/" GAME_VERSION, identity.c_str(), getQuestDeviceName());
-        endpoint.set_user_agent(ua_buff);
-    }
+    if(!this->hvClient){
 
-    // Initialize ASIO
-    endpoint.init_asio();
+        HeartBeat::getHvLoop()->setTimerInLoop(1000, [this](hv::TimerID){
 
-    timer_impl = [this](std::error_code e){
-        the_timer = endpoint.set_timer(200, timer_impl);
-
-        current_retry_time_already += 200;
-        
-        if(resetRequest){
-            resetRequest = false;
-            if(con && con->get_state() != websocketpp::session::state::closed)
-                con->close(1000, "reset requested");
-            failed_count = 0;
-            return;
-        }
-
-
-        if(current_retry_time_already <= retry_sleep_time() * 1000){
-            return;
-        }
-        current_retry_time_already = 0;
-
-        if(closed){
-            if(the_timer)
-                the_timer->cancel(), the_timer = nullptr;
-            if(con)
-                con->close(1000, "closed");
-            return;
-        }
-
-        if(con && con->get_state() == websocketpp::session::state::closed){
-            con = nullptr;
-            failed_count++;
-        }
-
-        if(con == nullptr){
-            if(UIManager::getInstance()->hasReader() && getModConfig().HypeRateId.GetValue().length() > 0){
-                websocketpp::lib::error_code ec;
-                con = endpoint.get_connection(WS_SERVER_HOST "/hyperate", ec);
-                con_opened = false;
-                if(ec){
-                    getLogger().error("HypeRate connection error: {}", ec.message());
-                    failed_count++;
-                    return;
-                }else{
-                    con->set_open_handshake_timeout(5000);
-                    con->set_close_handshake_timeout(1000);
-                    con->set_pong_timeout(3000);
-                    endpoint.connect(con);
-                    getLogger().info("heart server has been connected");
-                    return;
+            if(this->resetRequest){
+                this->resetRequest = false;
+                if(this->hvClient){
+                    this->hvClient->close();
+                    this->hvClientStatus = HV_CLOSED;
                 }
-            }else{
-                    return;
             }
-        }
 
-        if(con){
-            time_t now = time(NULL);
-            if(con_opened && now > last_ping_time + 5 && con->get_state() == websocketpp::session::state::open){
-                last_ping_time = now;
-                // getLogger().info("ping");
-                con->ping("");
+            if(UIManager::getInstance()->hasReader() && getModConfig().HypeRateId.GetValue().length() > 0){
+                if( !this->closed && (this->hvClientStatus == HV_UNINIT || hvClientStatus == HV_CLOSED)){
+                    http_headers mod_header = DefaultHeaders;
+                    {
+                        char ua_buff[1024];
+                        std::string identity = CheckHypeRateWebSocketIdentity();
+                        sprintf(ua_buff, "%s %s %s", "HeartBeatQuest/" VERSION " BeatSaber/" GAME_VERSION, identity.c_str(), getQuestDeviceName());
+                        mod_header["UserAgent"] = ua_buff;
+                    }
+                    this->hvClientStatus = HV_OPENED;
+
+                    reconn_setting_t reconn;
+                    reconn_setting_init(&reconn);
+                    reconn.min_delay = 1000 * 2;
+                    reconn.max_delay = 1000 * 60;
+                    reconn.delay_policy = 2;
+                    this->hvClient->setReconnect(&reconn);
+
+                    this->hvClient->open(WS_SERVER_HOST "/hyperate", mod_header);
+                }
             }
-        }
+        });
 
-    };
+        this->hvClient = std::unique_ptr<hv::WebSocketClient>(new hv::WebSocketClient(HeartBeat::getHvLoop()));
 
-    the_timer = endpoint.set_timer(200, timer_impl);
+        this->hvClient->onopen = [this](){
+            if(!this->hvClient) return;
+            if(this->closed) return;
 
-    // Register our handlers
-    endpoint.set_socket_init_handler([](std::weak_ptr<void> a,
-        asio::basic_stream_socket<asio::ip::tcp> &b){
-        
-    });
-    endpoint.set_ping_handler([](auto r, auto m){
-        return true;
-    });
-    endpoint.set_pong_handler([](auto r, auto p){
-        failed_count = 0;
-    });
-    endpoint.set_pong_timeout_handler([](auto r, auto p){
-        if(con && con->get_state() == websocketpp::session::state::open){
-            con->close(1000, "pong timeout");
-        }
-        getLogger().warn("Network ping-pong timeout");
-    });
-    // endpoint.set_tls_init_handler();
-    endpoint.set_message_handler([this](std::weak_ptr<void> a, 
-        std::shared_ptr<websocketpp::message_buffer::message<
-        websocketpp::message_buffer::alloc::con_msg_manager>> b){
-        if(b->get_opcode() != websocketpp::frame::opcode::text ){
-            //we can only handle text opcode
-            return;
-        }
-        failed_count = 0;
-        auto & payload = b->get_payload();
-        if(payload == "o"){
-            //this is a ping command
-            getLogger().info("pong");
-            return;
-        }
-        try{
+            this->hvClient->setReconnect(NULL);
+
+            getLogger().info("websocket connection opened executed");
+            std::string id = getModConfig().HypeRateId.GetValue();
+            // id = "internal-testing";
+            rapidjson::Document dom;
+            dom.SetObject();
+            dom.AddMember("_id", CheckHypeRateWebSocketIdentity(), dom.GetAllocator());
+            dom.AddMember("id", id, dom.GetAllocator());
+            dom.AddMember("lang", rapidjson::StringRef(LANG->lang_name), dom.GetAllocator());
+            dom.AddMember("ver", VERSION, dom.GetAllocator());
+            dom.AddMember("forgame", GAME_VERSION, dom.GetAllocator());
+
+            rapidjson::StringBuffer buffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            dom.Accept(writer);
+
+            std::string toSend = std::string("C") + buffer.GetString();
+            //getLogger().info("Send package to server: {}", toSend);
+
+            // the return value of send function is undocumented. so we can't use it.
+            this->hvClient->send(toSend);
+        };
+
+        this->hvClient->onclose = [this]() {
+            hvClientStatus = HV_CLOSED;
+        };
+        this->hvClient->onmessage = [this](const std::string& payload){
+            if(!this->hvClient) return;
+            if(this->closed) return;
             //getLogger().info("{}", payload);
             if(payload.length() > 1 && payload[0] == 'S'){
                 const char * json_str = payload.c_str() + 1;
@@ -283,7 +234,7 @@ void HeartBeatHypeRateDataSource::CreateSocket(){
                                 //do the action here
                                 if(strcmp(action, "close") == 0){
                                     closed = true;
-                                    con->close(1000, "server close, never open");
+                                    this->hvClient->close();
                                 }
 
                                 if(strcmp(action, "reset") == 0){
@@ -322,84 +273,9 @@ void HeartBeatHypeRateDataSource::CreateSocket(){
                 this->has_unread_heart_data = true;
                 std::atomic_thread_fence(std::memory_order_acquire);
             }
-    
-    
-        }catch(...){
-
-        }
-        //TODO: json load payload
-    });
-    endpoint.set_open_handler([](std::weak_ptr<void> a){
-        getLogger().info("connection open_handler executed");
-        std::string id = getModConfig().HypeRateId.GetValue();
-        // id = "internal-testing";
-        rapidjson::Document dom;
-        dom.SetObject();
-        dom.AddMember("_id", CheckHypeRateWebSocketIdentity(), dom.GetAllocator());
-        dom.AddMember("id", id, dom.GetAllocator());
-        dom.AddMember("lang", rapidjson::StringRef(LANG->lang_name), dom.GetAllocator());
-        dom.AddMember("ver", VERSION, dom.GetAllocator());
-        dom.AddMember("forgame", GAME_VERSION, dom.GetAllocator());
-
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        dom.Accept(writer);
-
-        std::string toSend = std::string("C") + buffer.GetString();
-        //getLogger().info("Send package to server: {}", toSend);
-        if(con->get_state() == websocketpp::session::state::open && con->send(toSend)){
-            getLogger().error("connection send failed.");
-            con->close(1000, "error");
-        }else{
-            con_opened = true;
-            failed_count = 0;
-        }
-    });
-    endpoint.set_close_handler([](std::weak_ptr<void> b){
-        getLogger().info("the connection has been closed");
-        con = nullptr;
-    });
-    
-    endpoint.set_fail_handler([](auto f){
-        getLogger().info("connection failed, retry later");
-        if(con && con->get_state() == websocketpp::session::state::open) con->close(1000, "failed");
-        failed_count++;
-        con = nullptr;
-    });
-
-
-    pthread_t the_thread;
-    pthread_create(&the_thread, NULL, HeartBeatHypeRateDataSource::ServerThread, this);
-}
-
-
-void * HeartBeatHypeRateDataSource::ServerThread(void *self){
-    HeartBeatHypeRateDataSource * me = (decltype(me))self;
-
-    auto retry = [](){
-        sleep(3);
-        try{
-            if(con && con->get_state() == websocketpp::session::state::open)con->close(1000,"cpp exception");
-        }catch(...){
-            // con = nullptr;
-        }
-    };
-    while(!me->closed){
-        try{
-            endpoint.run();
-            timer_impl(std::error_code());
-        } catch (websocketpp::exception const & e) {
-            getLogger().error("websocketpp exception {}", e.what());
-            retry();
-        } catch (std::exception const & e) {
-            getLogger().error("std exception exception {}", e.what());
-            retry();
-        } catch (...) {
-            getLogger().error("other exception");
-            retry();
-        }
+        };
     }
-    return nullptr;
+    
 }
 
 bool HeartBeatHypeRateDataSource::GetData(int&heartbeat){
