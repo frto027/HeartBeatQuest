@@ -7,6 +7,9 @@
 #include "settings/Settings.hpp"
 #include "settings/MainSettings.hpp"
 #include "SettingsSnapshot.hpp"
+#include <atomic>
+
+std::atomic_int HeartBeat::Settings::active_setthings_ui_count = 0;
 
 void HeartBeat::MainSettings::CreateElements(){
         HeartBeat::assetBundleMgr.Init();

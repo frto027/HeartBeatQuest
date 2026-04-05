@@ -48,6 +48,9 @@ void HeartBeat::SettingsUI::Setup(){
 }
 
 void HeartBeat::SettingsUI::Update(){
+    if(HeartBeat::Settings::active_setthings_ui_count == 0)
+        return;
+    
     static int slow_down = 0;
     if(slow_down++ < 20)
         return;

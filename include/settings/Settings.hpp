@@ -2,6 +2,7 @@
 
 #include "custom-types/shared/macros.hpp"
 #include "HMUI/ViewController.hpp"
+#include <atomic>
 #include <il2cpp-config.h>
 #include "HeartBeat.hpp"
 #include <string>
@@ -16,6 +17,8 @@ namespace HeartBeat{
     void OpenWebpage(std::string url);
 
     class Settings{
+    public:
+        static std::atomic_int active_setthings_ui_count;
     private:
         std::string menuTitle, buttonText,hoverHint;
 
@@ -38,11 +41,13 @@ namespace HeartBeat{
                     self->add_didDeactivateEvent(custom_types::MakeDelegate<HMUI::ViewController::DidDeactivateDelegate*>(std::function([this](bool removedFromHierarchy, bool screenSystemDisabling){
                         MainMenuPreviewer::getInstance()->Hide();
                         m_isActive = false;
+                        active_setthings_ui_count--;
                         this->Close();
                     })));
                 }
                 this->Open();
                 m_isActive = true;
+                active_setthings_ui_count++;
                 MainMenuPreviewer::getInstance()->Show();
             });
         }

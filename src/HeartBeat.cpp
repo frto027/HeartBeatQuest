@@ -84,27 +84,8 @@ namespace HeartBeat{
 
         if(this->gameObject->activeInHierarchy == false)
             return;
-        if(MainMenuPreviewer::getInstance()->serverMessageDisplayer){
-            if(SettingsSnapshot::getInstance()->DataSourceType == DS_HypeRate){
-                std::string message;
-                bool has_message = false;
-                auto * instance = DataSource::getInstance()->as<HeartBeatHypeRateDataSource>();
-                if(instance->has_message_from_server){
-                    std::lock_guard<std::mutex> lock(instance->message_from_server_mutex);
-                    if(instance->has_message_from_server){
-                        message = instance->message_from_server;
-                        has_message = true;
-                    }
-                }
-                if(has_message)
-                MainMenuPreviewer::getInstance()->serverMessageDisplayer->set_text(message);
-            }
-        }
-        
-        HeartBeat::SettingsUI::Update();
-        
-        DataHub::getInstance()->Update();
 
+        HeartBeat::DataHub::getInstance()->Update();
         int data;
         if(DataHub::getInstance()->GetData(data)){
             int Maximum = getModConfig().MaxHeart.GetValue();

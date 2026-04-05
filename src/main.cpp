@@ -1,6 +1,7 @@
 #include "main.hpp"
 #include "GlobalNamespace/CoreGameHUDController.hpp"
 #include "HeartBeat.hpp"
+#include "ModObject.hpp"
 #include "SettingsSnapshot.hpp"
 #include "data_sources/Bluetooth.hpp"
 #include "data_sources/DataSource.hpp"
@@ -31,6 +32,7 @@
 
 #include "i18n.hpp"
 #include <cstddef>
+#include <mutex>
 #include "BeatLeaderRecorder.hpp"
 
 static modloader::ModInfo modInfo = {MOD_ID, VERSION, 0}; // Stores the ID and version of our mod, and is sent to the modloader upon startup
@@ -116,6 +118,19 @@ MAKE_HOOK_MATCH(GameplayCoreHook, &GlobalNamespace::CoreGameHUDController::Initi
     comp->isQountersMode = false;
     getLogger().info("The UI has been created");
 }
+
+MAKE_HOOK_MATCH(HeartBeatSceneChange, &UnityEngine::SceneManagement::SceneManager::SetActiveScene, bool, UnityEngine::SceneManagement::Scene scene){
+    
+    // maybe I could find a better hook site in the future.
+    static std::once_flag in_game_init_flag;
+    std::call_once(in_game_init_flag, [](){
+        HeartBeat::InitModObject();
+    });
+    
+    return HeartBeatSceneChange(scene);
+}
+
+
 // Called later on in the game loading - a good time to install function hooks
 extern "C" void late_load() {
     getLogger().info("Loading HeartBeatQuest(" VERSION ","  GAME_VERSION ")");
@@ -141,6 +156,7 @@ extern "C" void late_load() {
 
     getLogger().info("Installing hooks...");
     INSTALL_HOOK(getLogger(), GameplayCoreHook);
+    INSTALL_HOOK(getLogger(), HeartBeatSceneChange);
 
     getLogger().info("init recorder...");
     HeartBeat::Recorder::Init();
@@ -149,5 +165,6 @@ extern "C" void late_load() {
     getLogger().info("try init qounters...");
     HeartBeat::Qounters::Init();
     #endif
+    
     getLogger().info("Done.");
 }
