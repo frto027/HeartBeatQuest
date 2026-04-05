@@ -7,7 +7,7 @@
 
 // parameters are (namespace, class name, parent class, contents)
 #if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0) || defined(GAME_VER_1_37_0)
-DECLARE_CLASS_CODEGEN(HeartBeat, HeartBeatObj, UnityEngine::MonoBehaviour,
+DECLARE_CLASS_CODEGEN(HeartBeat, ModObject, UnityEngine::MonoBehaviour,
 #else
 DECLARE_CLASS_CODEGEN(HeartBeat, ModObject, UnityEngine::MonoBehaviour){
 #endif
