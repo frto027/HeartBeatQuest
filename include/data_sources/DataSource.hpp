@@ -30,8 +30,6 @@ public:
     }
 
     static DataSource * getInstance();
-
-    
 };
     
 

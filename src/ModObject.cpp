@@ -5,8 +5,7 @@
 #include <mutex>
 #include <queue>
 #include "SettingsSnapshot.hpp"
-#include "data_sources/Hyperate.hpp"
-
+#include "BackgroundThread.hpp"
 DEFINE_TYPE(HeartBeat, ModObject);
 
 
@@ -18,11 +17,13 @@ std::queue<std::function<void(void)>> runQueue;
 void InitModObject(){
     static std::once_flag initModObjFlag;
     std::call_once(initModObjFlag,[](){
-        UnityEngine::GameObject::New_ctor()->AddComponent<ModObject*>();
+        auto obj = UnityEngine::GameObject::New_ctor();
+        obj->set_name("HeartBeatQuestModLifeCycleObject");
+        obj->AddComponent<ModObject*>();
     });
 }
 
-void RunInUnityThreadLater(std::function<void ()> func){
+void runInUnityThread(std::function<void ()> func){
     std::lock_guard<std::mutex> g(runQueueLock);
     runQueue.push(std::move(func));
 }
@@ -32,33 +33,17 @@ void ModObject::Start(){
 }
 
 void ModObject::Update(){
-
     {
         // run all events
-        std::lock_guard<std::mutex> g(runQueueLock);
+        std::unique_lock<std::mutex> lock(runQueueLock);
         while(!runQueue.empty()){
-            runQueue.front()();
+            auto func = std::move(runQueue.front());
             runQueue.pop();
+            lock.unlock();
+            func();
+            lock.lock();
         }
-    }
-
-    if(MainMenuPreviewer::getInstance()->serverMessageDisplayer){
-        if(SettingsSnapshot::getInstance()->DataSourceType == DS_HypeRate){
-            std::string message;
-            bool has_message = false;
-            auto * instance = DataSource::getInstance()->as<HeartBeatHypeRateDataSource>();
-            if(instance->has_message_from_server){
-                std::lock_guard<std::mutex> lock(instance->message_from_server_mutex);
-                if(instance->has_message_from_server){
-                    message = instance->message_from_server;
-                    has_message = true;
-                }
-            }
-            if(has_message)
-                MainMenuPreviewer::getInstance()->serverMessageDisplayer->set_text(message);
-        }
-    }
-        
+    }        
 
     HeartBeat::SettingsUI::Update();
         
@@ -71,7 +56,7 @@ void ModObject::OnDestroy(){
 }
 
 void ModObject::OnApplicationQuit(){
-
+    terminateBackground();
 }
 
 }

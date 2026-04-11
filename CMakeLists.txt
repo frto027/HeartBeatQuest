@@ -112,9 +112,9 @@ target_include_directories(${COMPILE_ID} PUBLIC ${SHARED_DIR})
 # codegen includes 
 target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/${CODEGEN_ID}/include)
 
-# libhv includes
-target_include_directories(${COMPILE_ID} PRIVATE build_third_party/libhv/include)
-target_link_libraries(${COMPILE_ID} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/build_third_party/libhv/lib/libhv.a)
+# ixwebsocket includes
+target_include_directories(${COMPILE_ID} PRIVATE build_third_party/ixwebsocket/include)
+target_link_libraries(${COMPILE_ID} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/build_third_party/ixwebsocket/lib/libixwebsocket.a)
 
 target_link_libraries(${COMPILE_ID} PRIVATE -llog)
 # add extern stuff like libs and other includes

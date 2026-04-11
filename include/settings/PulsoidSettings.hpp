@@ -16,8 +16,15 @@ namespace HeartBeat {
     public:
         PulsoidSettings():Settings("Pulsoid Connect", LANG->pulsoid, "<3") { }
         void CreateElements() override;
-        void Update() override;
+        // void Update() override;
         void Close() override;
+
+        void SyncModConfig();
+
+        void setButtonBusying();
+        void setButtonOpeningUrl();
+        void setButtonPairing();
+        void setButtonPairDone();
     };
 
     

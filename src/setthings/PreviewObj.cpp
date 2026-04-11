@@ -9,6 +9,7 @@
 
 HeartBeat::MainMenuPreviewer::MainMenuPreviewer(){
     Reload();
+    Hide();
 }
 
 void HeartBeat::MainMenuPreviewer::Show(){

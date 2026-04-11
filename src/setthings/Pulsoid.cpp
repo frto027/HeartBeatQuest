@@ -1,8 +1,9 @@
 #include "ModConfig.hpp"
+#include "ModObject.hpp"
 #include "main.hpp"
 #include "data_sources/Pulsoid.hpp"
 #include "settings/PulsoidSettings.hpp"
-#include "settings/Settings.hpp"
+#include <string>
 
 void HeartBeat::PulsoidSettings::CreateElements(){
                 // self->add_didDeactivateEvent(custom_types::MakeDelegate<HMUI::ViewController::DidDeactivateDelegate*>(std::function([](bool removedFromHierarchy, bool screenSystemDisabling){
@@ -21,16 +22,40 @@ void HeartBeat::PulsoidSettings::CreateElements(){
                 
                 {
                     auto * pair_container = BSML::Lite::CreateHorizontalLayoutGroup(container->get_transform());
-                    PairInBrowserBtn = BSML::Lite::CreateUIButton(pair_container->get_transform(), LANG->pulsoid_connect, UnityEngine::Vector2{}, UnityEngine::Vector2{20, 8}, [](){
-                        HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->RequestSafePair();
+                    PairInBrowserBtn = BSML::Lite::CreateUIButton(pair_container->get_transform(), LANG->pulsoid_connect, UnityEngine::Vector2{}, UnityEngine::Vector2{20, 8}, [this](){
+                        setButtonOpeningUrl();
+                        HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()
+                            ->RequestSafePair([this](){
+                                //ondone
+                                setButtonPairing();
+                            }, [this](std::string errmsg){
+                                //onfail
+                                this->errMsgText->set_text(errmsg);
+                                setButtonPairDone();
+                            });
                     });
 
-                    BrowserCompleteBtn = BSML::Lite::CreateUIButton(pair_container->get_transform(), LANG->pulsoid_done, UnityEngine::Vector2{}, UnityEngine::Vector2{20, 8}, [](){
-                        HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->SafePairDone();
+                    BrowserCompleteBtn = BSML::Lite::CreateUIButton(pair_container->get_transform(), LANG->pulsoid_done, UnityEngine::Vector2{}, UnityEngine::Vector2{20, 8}, [this](){
+                        setButtonBusying();
+                        HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()
+                            ->SafePairDone([this](){
+                                runInUnityThread([this](){
+                                    setButtonPairDone();
+                                    HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->ResetConnection();
+                                });
+                            }, [](){
+                                //pending, donothing
+                            }, [this](std::string failmsg){
+                                runInUnityThread([this, failmsg](){
+                                    this->errMsgText->set_text(failmsg);
+                                    setButtonPairDone();
+                                });
+                            });
                     });
 
-                    CancelBrowserPairBtn = BSML::Lite::CreateUIButton(pair_container->get_transform(), LANG->pulsoid_cancel, UnityEngine::Vector2{}, UnityEngine::Vector2{20, 8}, [](){
-                        HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->CancelSafePair();
+                    CancelBrowserPairBtn = BSML::Lite::CreateUIButton(pair_container->get_transform(), LANG->pulsoid_cancel, UnityEngine::Vector2{}, UnityEngine::Vector2{20, 8}, [this](){
+                        HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->SafePairCancel();
+                        setButtonPairDone();
                     });
                     BrowserCompleteBtn->set_interactable(false);
                     CancelBrowserPairBtn->set_interactable(false);
@@ -41,9 +66,9 @@ void HeartBeat::PulsoidSettings::CreateElements(){
 
                 BSML::Lite::CreateText(container->get_transform(), LANG->pulsoid_token, 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 4});
                 tokenText = BSML::Lite::CreateText(container->get_transform(), "", 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 4});
-                BSML::Lite::CreateUIButton(container->get_transform(), LANG->pulsoid_clear_token, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 8}, [](){
+                BSML::Lite::CreateUIButton(container->get_transform(), LANG->pulsoid_clear_token, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 8}, [this](){
                     getModConfig().PulsoidToken.SetValue(getModConfig().PulsoidToken.GetDefaultValue());
-                    HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->modconfig_is_dirty = true;
+                    this->SyncModConfig();
                     HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->ResetConnection();
                 });
 
@@ -72,46 +97,39 @@ void HeartBeat::PulsoidSettings::CreateElements(){
                     BSML::Lite::CreateText(container->get_transform(), buff, 4, UnityEngine::Vector2{}, UnityEngine::Vector2{50, 18});
                 }
 
-                HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->modconfig_is_dirty = true;
+                SyncModConfig();
 }
 
-void HeartBeat::PulsoidSettings::Update(){
-    auto * ds = HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>();
-    if(ds->modconfig_is_dirty){
-        ds->modconfig_is_dirty = false;
-        
-        {
-            std::string token = getModConfig().PulsoidToken.GetValue();
-            for(int i=8;i<token.size();i++){
-                if(token[i] != '-')
-                    token[i] = '*';
-            }
-            tokenText->set_text(token);
-        }
+void HeartBeat::PulsoidSettings::SyncModConfig(){
+    std::string token = getModConfig().PulsoidToken.GetValue();
+    for(int i=8;i<token.size();i++){
+        if(token[i] != '-')
+            token[i] = '*';
     }
-
-    if(ds->err_message_dirty){
-        std::lock_guard<std::mutex> g(ds->err_message_mutex);
-        errMsgText->set_text(ds->err_message);
-        ds->err_message_dirty = false;
-    }
-    if(ds->url_open_wanted){
-        std::string url;
-        {
-            std::lock_guard<std::mutex> g(ds->url_mutex);
-            url = ds->url;
-            ds->url_open_wanted = false;
-        }
-        //open the login url in the quest browser
-        OpenWebpage(url);
-    }
-    if(PairInBrowserBtn){
-        PairInBrowserBtn->set_interactable(!ds->IsSafePairing());
-        BrowserCompleteBtn->set_interactable(ds->IsSafePairing());
-        CancelBrowserPairBtn->set_interactable(ds->IsSafePairing());
-    }
+    tokenText->set_text(token);
+}
+void HeartBeat::PulsoidSettings::setButtonBusying(){
+    PairInBrowserBtn        ->set_interactable(false);
+    BrowserCompleteBtn      ->set_interactable(false);
+    CancelBrowserPairBtn    ->set_interactable(false);
+}
+void HeartBeat::PulsoidSettings::setButtonOpeningUrl(){
+    PairInBrowserBtn        ->set_interactable(false);
+    BrowserCompleteBtn      ->set_interactable(false);
+    CancelBrowserPairBtn    ->set_interactable(false);
+}
+void HeartBeat::PulsoidSettings::setButtonPairing(){
+    PairInBrowserBtn        ->set_interactable(false);
+    BrowserCompleteBtn      ->set_interactable(true);
+    CancelBrowserPairBtn    ->set_interactable(true);
+}
+void HeartBeat::PulsoidSettings::setButtonPairDone(){
+    PairInBrowserBtn        ->set_interactable(true);
+    BrowserCompleteBtn      ->set_interactable(false);
+    CancelBrowserPairBtn    ->set_interactable(false);
 }
 
 void HeartBeat::PulsoidSettings::Close(){
-    HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->CancelSafePair();
+    setButtonPairDone();
+    HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->SafePairCancel();
 }

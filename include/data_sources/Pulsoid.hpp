@@ -1,11 +1,11 @@
 #pragma once
 
 #include "DataSource.hpp"
+#include "ixwebsocket/IXWebSocket.h"
 #include <memory>
+#include <optional>
 #include <string>
 #include <mutex>
-#include "hv/WebSocketClient.h"
-#include "hvdriver.hpp"
 
 namespace HeartBeat{
 
@@ -16,55 +16,28 @@ class HeartBeatPulsoidDataSource:public DataSource{
         
         bool closed = false; // set to true to close the thread
 
-        void CreateSocket();
+        ix::WebSocket websocket;
 
-        bool safe_pairing = false;
-
-        bool safe_pair_done_wanted = false;
-
-        std::unique_ptr<hv::WebSocketClient> hvClient = nullptr;
-        HeartBeat::HVClientStatus hvClientStatus = HV_UNINIT;
-
-        hv::TimerID safe_pair_keepalive_timer = INVALID_TIMER_ID;
-        std::string pair_token_url = "";
+        // only operate these in unity thread
+        int keep_alive_total_request_count = 0;
+        int keep_alive_timer = 0;
+        std::optional<std::string> keep_alive_url = {};
+        std::optional<std::string> token_url = {};
     public:
         HeartBeatPulsoidDataSource();
         bool GetData(int& heartbeat) override;
-    
-        static void * ServerThread(void *self);
-        
+
+        void Update() override;
+
         void ResetConnection();
 
-        void RequestPair(std::string pair_str);
-        void RequestSafePair();
-        void CancelSafePair(){
-            safe_pairing = false;
-        }
-        bool IsSafePairing(){
-            return safe_pairing;
-        }
-
-        void SafePairDone();
-
-
-        bool modconfig_is_dirty = false;
-
-        // a async message from service thread to main thread.
-        bool url_open_wanted = false;
-        std::string url;
-        std::mutex url_mutex;
-
-
-        bool err_message_dirty = false;
-        std::string err_message;
-        std::mutex err_message_mutex;
+        // call this function will request a url and open it in browser, then call ondone_unity
+        void RequestSafePair(std::function<void(void)> ondone_unity, std::function<void(std::string /* reason */)> onfail_unity);
+        void SafePairDone(std::function<void(void)> ondone, std::function<void(void)> onpending/* user clicked done button, but actually not done */, std::function<void(std::string)> onfail);
+        void SafePairCancel();
     private:
-
-        void err(std::string message){
-            std::lock_guard<std::mutex> g(err_message_mutex);
-            err_message = message;
-            err_message_dirty = true;
-        }
+        // execute in websocket thread
+        void onWebSocketMessage(const ix::WebSocketMessagePtr& ptr);
 };
     
 

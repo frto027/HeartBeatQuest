@@ -10,6 +10,11 @@ namespace HeartBeat {
         void CreateElements() override;
 
         std::string hyperate_id;
+
+    private:
+        std::vector<UnityEngine::UI::Button*> buttons;
+        void disableBtns();
+        void enableBtns();
     };
 
     

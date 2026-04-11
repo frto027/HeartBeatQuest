@@ -1,11 +1,12 @@
 #pragma once
 
 #include "DataSource.hpp"
-#include "hv/WebSocketClient.h"
-#include "hvdriver.hpp"
-#include <memory>
-namespace HeartBeat{
+#include "beatsaber-hook/shared/rapidjson/include/rapidjson/document.h"
+#include "ixwebsocket/IXWebSocket.h"
+#include <functional>
+#include <optional>
 
+namespace HeartBeat{
 
 class HeartBeatHypeRateDataSource:public DataSource{
     private:
@@ -18,25 +19,21 @@ class HeartBeatHypeRateDataSource:public DataSource{
 
         bool resetRequest = false;
 
-
-        std::unique_ptr<hv::WebSocketClient> hvClient = nullptr;
-        HeartBeat::HVClientStatus hvClientStatus = HV_UNINIT;
+        // this member should only be used in background thread
+        ix::WebSocket websocket;
     public:
         HeartBeatHypeRateDataSource();
         bool GetData(int& heartbeat) override;
-    
-        static void * ServerThread(void *self);
-        
-        void ResetConnection(){
-            resetRequest = true;
-        }
+            
+        void SetHyperateID(std::string id);
+        void RestartSocket(std::optional<std::function<void(void)>> callback_unity = {});
 
-        bool has_message_from_server = false;
-        char message_from_server[256];
-        std::mutex message_from_server_mutex;
-
-
+        void Update() override;
     private:
+        // execute in websocket thread
+        void onWebSocketMessage(const ix::WebSocketMessagePtr& ptr);
+        void handleServerPayload(const std::string & type, rapidjson::Document & d);
+        void handleHyperatePaylod(rapidjson::Document & d);
 };
 
 
