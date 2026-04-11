@@ -41,10 +41,16 @@ void HeartBeat::PulsoidSettings::CreateElements(){
                             ->SafePairDone([this](){
                                 runInUnityThread([this](){
                                     setButtonPairDone();
+                                    this->errMsgText->set_text("");
+                                    this->SyncModConfig();
                                     HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatPulsoidDataSource>()->ResetConnection();
                                 });
-                            }, [](){
+                            }, [this](){
                                 //pending, donothing
+                                runInUnityThread([this](){
+                                    setButtonPairing();
+                                    this->errMsgText->set_text("");
+                                });
                             }, [this](std::string failmsg){
                                 runInUnityThread([this, failmsg](){
                                     this->errMsgText->set_text(failmsg);
