@@ -70,7 +70,7 @@ std::string HeartBeat::getModUserAgent(bool with_identity){
 
     if(with_identity)
       ss << " id/" << identity;
-    ss << " lang/" << LANG->lang_name;
+    ss << " lang/" << (LANG?LANG->lang_name:"?");
     return ss.str();
 }
 

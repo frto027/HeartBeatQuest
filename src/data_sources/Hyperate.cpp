@@ -27,6 +27,7 @@
 #include "i18n.hpp"
 #include "ixwebsocket/IXWebSocket.h"
 #include "ixwebsocket/IXWebSocketHttpHeaders.h"
+#include "ixwebsocket/IXWebSocketMessageType.h"
 #include "main.hpp"
 #include <unistd.h>
 
@@ -70,7 +71,9 @@ HeartBeatHypeRateDataSource::HeartBeatHypeRateDataSource()
     std::lock_guard<std::mutex> g(Recorder::heartDeviceNameLock);
     Recorder::heartDeviceName = HEART_DEV_NAME_HYPERATE;
   }
+}
 
+void HeartBeatHypeRateDataSource::LateStart(){
   // setup websocket
   websocket.setUrl(WS_SERVER_HOST "/hyperate");
   ix::WebSocketHttpHeaders headers;
@@ -80,7 +83,6 @@ HeartBeatHypeRateDataSource::HeartBeatHypeRateDataSource()
       std::bind(&HeartBeatHypeRateDataSource::onWebSocketMessage, this,
                 std::placeholders::_1));
 }
-
 
 void HeartBeatHypeRateDataSource::RestartSocket(std::optional<std::function<void(void)>> callback) {
   runBackground([this, callback=std::move(callback)]() {
@@ -95,8 +97,19 @@ void HeartBeatHypeRateDataSource::RestartSocket(std::optional<std::function<void
 
     websocket.start();
 
-    {
-      getLogger().info("websocket connection opened executed");
+    if(callback.has_value()){
+        runInUnityThread(std::move(callback.value()));
+    }
+  });
+}
+
+// call thread: websocket thread
+void HeartBeatHypeRateDataSource::onWebSocketMessage(
+    const ix::WebSocketMessagePtr &ptr) {
+      getLogger().info("Received message {}", (int)ptr->type);
+
+    if (ptr->type == ix::WebSocketMessageType::Open){
+      getLogger().info("websocket connection opened, send start message");
       std::string id = getModConfig().HypeRateId.GetValue();
       // id = "internal-testing";
       rapidjson::Document dom;
@@ -114,48 +127,55 @@ void HeartBeatHypeRateDataSource::RestartSocket(std::optional<std::function<void
       dom.Accept(writer);
 
       std::string toSend = std::string("C") + buffer.GetString();
-      // getLogger().info("Send package to server: {}", toSend);
+      getLogger().info("Send package to server: {}", toSend);
 
-      // the return value of send function is undocumented. so we can't use it.
       websocket.send(toSend);
+      return;
     }
 
-    if(callback.has_value()){
-        runInUnityThread(std::move(callback.value()));
+    if (ptr->type == ix::WebSocketMessageType::Error)
+    {
+        std::stringstream ss;
+        ss << "Error: "         << ptr->errorInfo.reason      << std::endl;
+        ss << "#retries: "      << ptr->errorInfo.retries     << std::endl;
+        ss << "Wait time(ms): " << ptr->errorInfo.wait_time   << std::endl;
+        ss << "HTTP Status: "   << ptr->errorInfo.http_status << std::endl;
+        getLogger().error("Websocket error: \n{}", ss.str());
+        return;
     }
-  });
-}
 
-// call thread: websocket thread
-void HeartBeatHypeRateDataSource::onWebSocketMessage(
-    const ix::WebSocketMessagePtr &ptr) {
-  const std::string &payload = ptr->str;
+  
 
-  if (payload.length() > 1 && payload[0] == 'S') {
-    const char *json_str = payload.c_str() + 1;
-    rapidjson::Document d;
-    d.Parse(json_str);
-    if (!d.IsObject())
-      return;
-    auto type_it = d.FindMember("type");
-    if (type_it == d.MemberEnd())
-      return;
-    if (!type_it->value.IsString())
-      return;
-    std::string type = type_it->value.GetString();
-    handleServerPayload(type, d);
+  if(ptr->type == ix::WebSocketMessageType::Message){
+    const std::string &payload = ptr->str;
 
-    return;
+    if (payload.length() > 1 && payload[0] == 'S') {
+      const char *json_str = payload.c_str() + 1;
+      rapidjson::Document d;
+      d.Parse(json_str);
+      if (!d.IsObject())
+        return;
+      auto type_it = d.FindMember("type");
+      if (type_it == d.MemberEnd())
+        return;
+      if (!type_it->value.IsString())
+        return;
+      std::string type = type_it->value.GetString();
+      handleServerPayload(type, d);
+
+      return;
+    }
+
+    {
+      const char *json_str = payload.c_str();
+      rapidjson::Document d;
+      d.Parse(json_str);
+      if (!d.IsObject())
+        return;
+      handleHyperatePaylod(d);
+    }
   }
 
-  {
-    const char *json_str = payload.c_str();
-    rapidjson::Document d;
-    d.Parse(json_str);
-    if (!d.IsObject())
-      return;
-    handleHyperatePaylod(d);
-  }
 }
 
 void HeartBeatHypeRateDataSource::handleServerPayload(const std::string &type,

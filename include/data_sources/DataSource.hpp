@@ -20,6 +20,8 @@ public:
 
     DataSource(DataSourceType ty):dataSourceType(ty){ }
 
+    virtual void LateStart(){};
+
     virtual bool GetData(int& heartbeat) = 0;
     virtual long long GetEnergy() { return 0; };
     virtual void Update() { };

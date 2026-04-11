@@ -35,6 +35,8 @@ class HeartBeatPulsoidDataSource:public DataSource{
         void RequestSafePair(std::function<void(void)> ondone_unity, std::function<void(std::string /* reason */)> onfail_unity);
         void SafePairDone(std::function<void(void)> ondone, std::function<void(void)> onpending/* user clicked done button, but actually not done */, std::function<void(std::string)> onfail);
         void SafePairCancel();
+
+        void LateStart() override;
     private:
         // execute in websocket thread
         void onWebSocketMessage(const ix::WebSocketMessagePtr& ptr);

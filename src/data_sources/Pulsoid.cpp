@@ -40,7 +40,9 @@ HeartBeatPulsoidDataSource::HeartBeatPulsoidDataSource():DataSource(DataSourceTy
         std::lock_guard<std::mutex> g(Recorder::heartDeviceNameLock);
         Recorder::heartDeviceName = HEART_DEV_NAME_PULSOID;
     }
+}
 
+void HeartBeatPulsoidDataSource::LateStart(){
     // setup websocket
     websocket.setUrl(WS_SERVER_HOST "/hyperate");
     ix::WebSocketHttpHeaders headers;
@@ -49,6 +51,7 @@ HeartBeatPulsoidDataSource::HeartBeatPulsoidDataSource():DataSource(DataSourceTy
     websocket.setOnMessageCallback(
         std::bind(&HeartBeatPulsoidDataSource::onWebSocketMessage, this,
                     std::placeholders::_1));
+
 }
 
 void HeartBeatPulsoidDataSource::ResetConnection(){
@@ -65,6 +68,18 @@ void HeartBeatPulsoidDataSource::ResetConnection(){
 void HeartBeatPulsoidDataSource::onWebSocketMessage(const ix::WebSocketMessagePtr& ptr){
     if(!ptr)
         return;
+    if (ptr->type == ix::WebSocketMessageType::Error)
+    {
+        std::stringstream ss;
+        ss << "Error: "         << ptr->errorInfo.reason      << std::endl;
+        ss << "#retries: "      << ptr->errorInfo.retries     << std::endl;
+        ss << "Wait time(ms): " << ptr->errorInfo.wait_time   << std::endl;
+        ss << "HTTP Status: "   << ptr->errorInfo.http_status << std::endl;
+        getLogger().error("Websocket error: \n{}", ss.str());
+        return;
+    }
+
+
     if(ptr->type != ix::WebSocketMessageType::Message)
         return;
     auto & payload = ptr->str;

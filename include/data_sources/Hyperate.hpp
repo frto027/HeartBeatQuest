@@ -29,6 +29,7 @@ class HeartBeatHypeRateDataSource:public DataSource{
         void RestartSocket(std::optional<std::function<void(void)>> callback_unity = {});
 
         void Update() override;
+        void LateStart() override;
     private:
         // execute in websocket thread
         void onWebSocketMessage(const ix::WebSocketMessagePtr& ptr);

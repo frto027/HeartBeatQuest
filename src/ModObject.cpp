@@ -1,6 +1,7 @@
 #include "ModObject.hpp"
 #include "UnityEngine/GameObject.hpp"
 #include "DataHub.hpp"
+#include "data_sources/DataSource.hpp"
 #include "settings/Settings.hpp"
 #include <mutex>
 #include <queue>
@@ -20,6 +21,7 @@ void InitModObject(){
         auto obj = UnityEngine::GameObject::New_ctor();
         obj->set_name("HeartBeatQuestModLifeCycleObject");
         obj->AddComponent<ModObject*>();
+        DataSource::getInstance()->LateStart();
     });
 }
 
