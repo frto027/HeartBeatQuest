@@ -6,6 +6,10 @@ This mod uses [JNI](https://docs.oracle.com/javase/8/docs/technotes/guides/jni/s
 
 The Bluetooth access code at `AndroidProject/HeartBeatNative` can be compiled with AndroidStudio and Android SDK 34.
 
+## The threads
+
+refer to [Readme.thread.md](Readme.thread.md).
+
 ## How to build
 
 **make sure you have cloned the submodules.**
