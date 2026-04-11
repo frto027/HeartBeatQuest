@@ -1,6 +1,3 @@
-[submodule "third_party/libhv"]
-	path = third_party/libhv
-	url = https://github.com/ithewei/libhv.git
 [submodule "third_party/IXWebSocket"]
 	path = third_party/IXWebSocket
 	url = https://github.com/machinezone/IXWebSocket.git
