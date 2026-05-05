@@ -1,0 +1,53 @@
+name: qmod_build_openclaw_neko
+
+on:
+  push:
+    branches: [ "openclaw-neko" ]
+    paths-ignore:
+      - '*.md'
+      - 'UnityUI'
+      - 'CHANGELOG'
+  pull_request:
+    branches: [ "openclaw-neko" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        game-version: [
+          "1.37.0",
+          "1.40.8"
+        ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+    - name: Apply game version
+      run: python multibuild/apply.py ${{ matrix.game-version }}
+
+    - name: QPM Action
+      uses: Fernthedev/qpm-action@v1
+      with:
+        workflow_token: ${{ secrets.GITHUB_TOKEN }}
+        restore: true
+        cache: true
+
+    - name: build qmod
+      run: |
+          cd ${GITHUB_WORKSPACE}
+          qpm restore
+          qpm s build && qpm qmod zip
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: qmod.${{ matrix.game-version }}
+        path: HeartBeatQuest*.qmod
+        overwrite: true
+    - uses: actions/upload-artifact@v4
+      if: ${{ matrix.game-version == '1.40.8' }}
+      with:
+        name: debug_so.${{ matrix.game-version }}
+        path: build/debug/libHeartBeatQuest.so
+        overwrite: true
