@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "java.h"
 #include <jni.h>
 
