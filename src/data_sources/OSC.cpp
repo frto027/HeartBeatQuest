@@ -18,31 +18,32 @@
 #include "BeatLeaderRecorder.hpp"
 #include "data_sources/OSC.hpp"
 
-namespace HeartBeat{
+namespace HeartBeat {
 
-HeartBeatOSCDataSource * oscDataSource;
+HeartBeatOSCDataSource* oscDataSource;
 
-HeartBeatOSCDataSource::HeartBeatOSCDataSource():DataSource(DataSourceType::DS_OSC){
+HeartBeatOSCDataSource::HeartBeatOSCDataSource()
+    : DataSource(DataSourceType::DS_OSC) {
     Recorder::SetHeartDeviceName(HEART_DEV_NAME_OSC);
     selected_addr = getModConfig().OSCSelectedDevice.GetValue();
     this->CreateSocket();
 
-    if(HeartBeat::MDnsHelper::osc_instance){
+    if (HeartBeat::MDnsHelper::osc_instance) {
         HeartBeat::MDnsHelper::osc_instance->CreateObject();
         HeartBeat::MDnsHelper::osc_instance->SetManagerId(MDNS_ID_OSC);
-        if(getModConfig().OSC_MDNS_ENABLED.GetValue()){
+        if (getModConfig().OSC_MDNS_ENABLED.GetValue()) {
             StartMDns();
         }
     }
 }
-void HeartBeatOSCDataSource::SetSelectedAddr(const std::string& mac){
-        getModConfig().OSCSelectedDevice.SetValue(mac);
-        std::lock_guard<std::mutex> g(mutex);
-        this->selected_addr = mac;
-    }
-void HeartBeatOSCDataSource::CreateSocket(){
+void HeartBeatOSCDataSource::SetSelectedAddr(const std::string& mac) {
+    getModConfig().OSCSelectedDevice.SetValue(mac);
+    std::lock_guard<std::mutex> g(mutex);
+    this->selected_addr = mac;
+}
+void HeartBeatOSCDataSource::CreateSocket() {
     this->recv_socket = socket(AF_INET, SOCK_DGRAM, 0);
-    if(this->recv_socket == -1){
+    if (this->recv_socket == -1) {
         getLogger().warn("Can't create OSC receive socket");
         return;
     }
@@ -51,7 +52,7 @@ void HeartBeatOSCDataSource::CreateSocket(){
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(getModConfig().OSCPort.GetValue());
-    if(-1 == bind(this->recv_socket, (sockaddr*)&addr, sizeof(addr))){
+    if (-1 == bind(this->recv_socket, (sockaddr*)&addr, sizeof(addr))) {
         getLogger().error("osc socket bind failed.");
         return;
     }
@@ -60,22 +61,24 @@ void HeartBeatOSCDataSource::CreateSocket(){
     pthread_create(&the_thread, NULL, HeartBeatOSCDataSource::ServerThread, this);
 }
 
-char * readOscString(char *&buff, ssize_t& size){
-    char * r = buff;
-    while(*buff && size > 0){
+char* readOscString(char*& buff, ssize_t& size) {
+    char* r = buff;
+    while (*buff && size > 0) {
         buff++;
         size--;
     }
-    if(size == 0 || *buff)
-        return nullptr;//invalid package
-    buff++;size--;
-    while(size % 4 != 0){
-        buff++;size--;
+    if (size == 0 || *buff)
+        return nullptr; // invalid package
+    buff++;
+    size--;
+    while (size % 4 != 0) {
+        buff++;
+        size--;
     }
     return r;
 }
-uint32_t readOscInt32(char *&buff, ssize_t&size){
-    if(size >= 4){
+uint32_t readOscInt32(char*& buff, ssize_t& size) {
+    if (size >= 4) {
         uint32_t ret = ntohl(*(uint32_t*)buff);
         buff += 4;
         size -= 4;
@@ -85,14 +88,14 @@ uint32_t readOscInt32(char *&buff, ssize_t&size){
     return 0;
 }
 
-float readOscFloat32(char*&buff, ssize_t&size){
+float readOscFloat32(char*& buff, ssize_t& size) {
     uint32_t r = readOscInt32(buff, size);
-    if(buff == nullptr)
+    if (buff == nullptr)
         return NAN;
     return *(float*)&r;
 }
-uint32_t readOscTimeTag(char *&buff, ssize_t&size){
-    if(size >= 8){
+uint32_t readOscTimeTag(char*& buff, ssize_t& size) {
+    if (size >= 8) {
         uint32_t ret = ntohl(*(uint32_t*)buff);
         buff += 8;
         size -= 8;
@@ -102,86 +105,86 @@ uint32_t readOscTimeTag(char *&buff, ssize_t&size){
     return 0;
 }
 
-void HeartBeatOSCDataSource::parseOscMessage(char *&thebuff, ssize_t &sz){
-
-        if(sz >= 8 && strcmp(thebuff, "#bundle") == 0){
-            // parse osc bundle
-            thebuff += 8;
-            sz -= 8;
-            while(sz > 0){
-                int32_t size = readOscInt32(thebuff, sz);
-                if(thebuff == nullptr)
-                    return;//invalid buffer
-                if(size > sz){
-                    thebuff = nullptr;
-                    return;//buffer overflow
-                }
-                if(size % 4 != 0){
-                    thebuff = nullptr;
-                    return;
-                }
-                
-                char * subbuff = thebuff;
-                ssize_t subbuff_sz = size;
-                parseOscMessage(subbuff, subbuff_sz);
-                if(subbuff == nullptr){
-                    thebuff = nullptr;
-                    return;//invalid buffer
-                }
-                sz -= size;
-                thebuff += size;
+void HeartBeatOSCDataSource::parseOscMessage(char*& thebuff, ssize_t& sz) {
+    if (sz >= 8 && strcmp(thebuff, "#bundle") == 0) {
+        // parse osc bundle
+        thebuff += 8;
+        sz -= 8;
+        while (sz > 0) {
+            int32_t size = readOscInt32(thebuff, sz);
+            if (thebuff == nullptr)
+                return; // invalid buffer
+            if (size > sz) {
+                thebuff = nullptr;
+                return; // buffer overflow
             }
-            return;
-        }
-        if(thebuff[0] != '/')
-            return;//unknown package
-        char * addr = readOscString(thebuff, sz);
-        if(addr == nullptr) return;
-        char * typestr = readOscString(thebuff, sz);
-        if(typestr == nullptr) return;
-        if(typestr[0] != ',' || typestr[2] != '\0' || (typestr[1] != 'f' && typestr[1] != 'i'))
-            return;
-        int heart_rate = 0;
-        if(typestr[1] == 'f'){
-            heart_rate = readOscFloat32(thebuff, sz);
-            if(thebuff == nullptr)
+            if (size % 4 != 0) {
+                thebuff = nullptr;
                 return;
-        }
-        if(typestr[1] == 'i'){
-            heart_rate = readOscInt32(thebuff, sz);
-            if(thebuff == nullptr)
-                return;
-        }
-
-        {
-            std::lock_guard<std::mutex> g(this->mutex);
-            if(this->selected_addr == addr){
-                this->the_heart = heart_rate;
-                this->has_unread_heart_data = true;
             }
-            this->received_addresses.insert(addr);
+
+            char* subbuff = thebuff;
+            ssize_t subbuff_sz = size;
+            parseOscMessage(subbuff, subbuff_sz);
+            if (subbuff == nullptr) {
+                thebuff = nullptr;
+                return; // invalid buffer
+            }
+            sz -= size;
+            thebuff += size;
         }
+        return;
+    }
+    if (thebuff[0] != '/')
+        return; // unknown package
+    char* addr = readOscString(thebuff, sz);
+    if (addr == nullptr)
+        return;
+    char* typestr = readOscString(thebuff, sz);
+    if (typestr == nullptr)
+        return;
+    if (typestr[0] != ',' || typestr[2] != '\0' || (typestr[1] != 'f' && typestr[1] != 'i'))
+        return;
+    int heart_rate = 0;
+    if (typestr[1] == 'f') {
+        heart_rate = readOscFloat32(thebuff, sz);
+        if (thebuff == nullptr)
+            return;
+    }
+    if (typestr[1] == 'i') {
+        heart_rate = readOscInt32(thebuff, sz);
+        if (thebuff == nullptr)
+            return;
+    }
+
+    {
+        std::lock_guard<std::mutex> g(this->mutex);
+        if (this->selected_addr == addr) {
+            this->the_heart = heart_rate;
+            this->has_unread_heart_data = true;
+        }
+        this->received_addresses.insert(addr);
+    }
 }
 
-void * HeartBeatOSCDataSource::ServerThread(void *self){
-    HeartBeatOSCDataSource * me = (decltype(me))self;
+void* HeartBeatOSCDataSource::ServerThread(void* self) {
+    HeartBeatOSCDataSource* me = (decltype(me))self;
 
-    while(true){
-        if(me->recv_socket < 0){
+    while (true) {
+        if (me->recv_socket < 0) {
             sleep(1000);
             continue;
         }
         char buff[4096];
         ssize_t sz = recvfrom(me->recv_socket, buff, sizeof(buff), 0, NULL, NULL);
-        char *thebuff = buff;
+        char* thebuff = buff;
         me->parseOscMessage(thebuff, sz);
     }
     return nullptr;
 }
 
-bool HeartBeatOSCDataSource::GetData(int&heartbeat){
-    if(has_unread_heart_data)
-    {
+bool HeartBeatOSCDataSource::GetData(int& heartbeat) {
+    if (has_unread_heart_data) {
         has_unread_heart_data = false;
         heartbeat = the_heart;
         return true;
@@ -189,18 +192,19 @@ bool HeartBeatOSCDataSource::GetData(int&heartbeat){
     return false;
 }
 
-void HeartBeatOSCDataSource::StartMDns(){
-    if(MDnsHelper::osc_instance){
-        MDnsHelper::osc_instance->SetMDnsName(getModConfig().OSC_MDNS_NAME.GetValue(), getModConfig().OSCPort.GetValue(), "_osc._udp.");
+void HeartBeatOSCDataSource::StartMDns() {
+    if (MDnsHelper::osc_instance) {
+        MDnsHelper::osc_instance->SetMDnsName(getModConfig().OSC_MDNS_NAME.GetValue(),
+                                              getModConfig().OSCPort.GetValue(), "_osc._udp.");
     }
 }
 
-void HeartBeatOSCDataSource::StopMDns(){
-    if(MDnsHelper::osc_instance){
+void HeartBeatOSCDataSource::StopMDns() {
+    if (MDnsHelper::osc_instance) {
         MDnsHelper::osc_instance->Stop();
     }
 }
-void HeartBeatOSCDataSource::OnMDnsDevNameChanged(std::string name){
+void HeartBeatOSCDataSource::OnMDnsDevNameChanged(std::string name) {
     this->mDnsName = std::move(name);
 }
-}
+} // namespace HeartBeat

@@ -2,11 +2,21 @@
 #define V(key, value)
 #endif
 V(enabled, "启用(重启生效)")
+V(lang_name, "chinese")
+
+V(heart_config, "心率设置")
+V(heart_devices, "心率设备")
+V(heart_senders, "心率数据源")
+V(heart_osc_senders, "OSC心率源")
+
 V(hyperate, "HypeRate")
 
+// TODO: translate V(pulsoid, "Pulsoid")
 V(hyperate_reset, "重置")
 V(hyperate_save_and_connect, "保存并连接")
 V(hyperate_input_hint, "https://app.hyperate.io/<color=\"green\">xxx</color><-输入这个")
+
+V(no_message_from_server, "")
 
 V(hyperate_con_start, "开始连接")
 V(hyperate_network_error, "网络错误: ")
@@ -18,16 +28,7 @@ V(hyperate_you_have_message, "收到一条消息")
 
 V(pulsoid_no_token, "无可用token")
 
-V(no_message_from_server, "")
-
-V(lang_name, "chinese")
-
 V(unsupported_feature_udpatre_mod, "UI不支持,可能需要升级MOD")
-
-V(heart_config, "心率设置")
-V(heart_devices, "心率设备")
-V(heart_senders, "心率数据源")
-V(heart_osc_senders, "OSC心率源")
 
 V(heart_osc_port, "OSC端口号: %d")
 
@@ -35,16 +36,16 @@ V(scan_start, "开始扫描")
 V(scan_stop, "停止扫描")
 V(turn_location_on, "请打开精准位置服务")
 
+V(scaning, "正在扫描")
+V(auto_scaning, "正在自动扫描")
+V(no_scan, "扫描已停止")
+
 V(ble_none_selected, ">> 无")
 V(ble_none_not_selected, "无")
 
 V(ble_permission_unknown, "权限清单获取错误")
 V(ble_permission_needed, "游戏蓝牙权限缺失")
 V(ble_permission_paired_only, "仅配对设备，可能需要更多权限")
-
-V(scaning, "正在扫描")
-V(auto_scaning, "正在自动扫描")
-V(no_scan, "扫描已停止")
 
 V(pairing, "正在配对，点击停止")
 V(not_pairing, "配对停止，点击开始")
@@ -59,11 +60,14 @@ V(for_game, "适配游戏版本" GAME_VERSION)
 V(no_beatleader, "Beatleader未找到或不支持，录制已禁用")
 V(waiting, "等待中...")
 
+// TODO: translate V(config_adjust_speed, "Config Adjust Speed")
 V(text_color, "文字颜色")
 V(flash_text_color, "闪烁颜色")
 V(replay_flash_text_color, "录像闪烁颜色")
 V(flash_duration_when_text_come, "数据抵达时的闪烁时长")
 V(flash_test, "闪烁测试")
+// TODO: translate V(line_space, "Line Space")
+// TODO: translate V(reset_default_line_space, "Reset Default Line Space")
 V(reset_to_default, "恢复默认")
 
 V(data_source, "数据源(重启生效)")
@@ -72,7 +76,9 @@ V(data_source, "数据源(重启生效)")
 //V(data_source_random, "随机")
 //V(data_source_lan, "局域网")
 //V(data_source_bluetooth, "蓝牙")
-
+// TODO: translate V(data_source_osc, "OSC")
+// TODO: translate V(data_source_hyperate, "HypeRate")
+// TODO: translate V(data_source_pulsoid, "Pulsoid")
 V(enable_record, "启用录像")
 V(record_dev_name, "保存设备名到录像")
 

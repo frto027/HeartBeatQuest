@@ -2,25 +2,24 @@
 
 #include "java.h"
 
-namespace HeartBeat{
+namespace HeartBeat {
 
 class JavaModHelper : public JavaSingleClassObject {
 private:
-    jmethodID
-        m_onModExit
-        ;
+    jmethodID m_onModExit;
+
 public:
-    JavaModHelper(jobject SomeClassLoader, jmethodID LoadClassMethod, JNIEnv * env) : JavaSingleClassObject(SomeClassLoader, LoadClassMethod, env, "top.zxff.nativeblereader.ModHelper") {        
+    JavaModHelper(jobject SomeClassLoader, jmethodID LoadClassMethod, JNIEnv* env)
+        : JavaSingleClassObject(SomeClassLoader, LoadClassMethod, env, "top.zxff.nativeblereader.ModHelper") {
         m_onModExit = GetMethodID("OnModExit", "()V");
     }
 
-    void OnModExit(){
+    void OnModExit() {
         auto ret = env->CallIntMethod(ThisObj, m_onModExit);
         CheckException();
     }
 
-    static JavaModHelper * instance;
+    static JavaModHelper* instance;
 };
 
-}
-
+} // namespace HeartBeat

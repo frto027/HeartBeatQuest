@@ -10,11 +10,11 @@
 #include "UnityEngine/Animator.hpp"
 
 
-namespace HeartBeat{
+namespace HeartBeat {
 
-extern const char *ui_features[];
+extern const char* ui_features[];
 
-struct AssetUI{
+struct AssetUI {
     std::optional<std::string> filePath;
     std::string AssetPath;
     std::map<std::string, std::string> infos;
@@ -22,28 +22,30 @@ struct AssetUI{
     std::set<std::string> unsupported_features;
 };
 
-struct AssetBundleInstinateInformation{
+struct AssetBundleInstinateInformation {
     std::vector<TMPro::TMP_Text*> heartrateTexts;
-    std::vector<UnityEngine::Animator *> animators;
-    UnityEngine::GameObject * gameObject;
+    std::vector<UnityEngine::Animator*> animators;
+    UnityEngine::GameObject* gameObject;
 };
-struct AssetBundleManager{
+struct AssetBundleManager {
     bool initialized = false;
 
     std::map<std::string, AssetUI> loadedBundles;
     void Init();
 
-    bool Instantiate(std::string name, UnityEngine::Transform * parent, AssetBundleInstinateInformation & result);
+    bool Instantiate(std::string name, UnityEngine::Transform* parent, AssetBundleInstinateInformation& result);
 
     static std::set<std::string> GetFeatures(std::string feature);
 };
 
 extern AssetBundleManager assetBundleMgr;
 
-}
+} // namespace HeartBeat
 
 
 // parameters are (namespace, class name, parent class, contents)
+// clang-format off
+
 #if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0) || defined(GAME_VER_1_37_0)
 DECLARE_CLASS_CODEGEN(HeartBeat, HeartBeatObj, UnityEngine::MonoBehaviour,
 #else
@@ -67,4 +69,4 @@ public:
 };
 #endif
 
-
+// clang-format on

@@ -10,31 +10,31 @@
 struct HeartBeatApi;
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 // everything is a function, to make sure we have no align problem
-struct HeartBeatApi{
-    int ApiVersion; 
+struct HeartBeatApi {
+    int ApiVersion;
     int __not_used__;
 
-    /* 
+    /*
         call this at least once per frame to flush the result of GetData.
         If this is called more than once per update-frame, the seconed or more calls will be ignored.
     */
     void (*Update)(void);
 
 
-    /* 
+    /*
         arguments:
             heartrate: the output of last updated heart rate value
 
         return value:
             returns a boolean value, which means if this update frame has new data
-        
+
         if the function returns 0, an old data will be assigned to heartrate.
     */
-    int (*GetData)(int * heartrate);
+    int (*GetData)(int* heartrate);
 
 
     /*
@@ -50,7 +50,7 @@ struct HeartBeatApi{
 
         If the Updater is not nullptr, it will replace the internal GetData function.
         Then the heart mod will display heart rate provided by this Updater, instead of
-        data from physical sensors or network data sources. The result of GetData is 
+        data from physical sensors or network data sources. The result of GetData is
         also affected. The updater will be called once per frame if someone calls Update.
 
         If the Updater is nullptr, the physical data will be used.
@@ -59,7 +59,7 @@ struct HeartBeatApi{
 
 
     void (*__not_used2__[20])(void);
-} __attribute__((packed,aligned(16)));
+} __attribute__((packed, aligned(16)));
 
 #ifdef __cplusplus
 }
@@ -70,9 +70,9 @@ namespace HeartBeat {
 #endif
 
 
-inline HeartBeatApi * GetHeartBeatApi(){
-    for(auto & mod : modloader::get_loaded()){
-        if(mod.info.id == "HeartBeatLanReceiver" || mod.info.id == "HeartBeatQuest"){
+inline HeartBeatApi* GetHeartBeatApi() {
+    for (auto& mod : modloader::get_loaded()) {
+        if (mod.info.id == "HeartBeatLanReceiver" || mod.info.id == "HeartBeatQuest") {
             HeartBeatApi* api = (HeartBeatApi*)dlsym(mod.handle, "heartBeatApi");
             return api;
         }
@@ -86,4 +86,3 @@ inline HeartBeatApi * GetHeartBeatApi(){
 #endif
 
 #endif // HEART_BEAT_QUEST_H
-

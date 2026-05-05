@@ -32,85 +32,79 @@
 #include "settings/Settings.hpp"
 #include "ModObject.hpp"
 
-namespace HeartBeat{
+namespace HeartBeat {
 
 
-
-HeartBeatPulsoidDataSource::HeartBeatPulsoidDataSource():DataSource(DataSourceType::DS_Pulsoid), status(""){
+HeartBeatPulsoidDataSource::HeartBeatPulsoidDataSource()
+    : DataSource(DataSourceType::DS_Pulsoid)
+    , status("") {
     Recorder::SetHeartDeviceName(HEART_DEV_NAME_PULSOID);
 }
 
-void HeartBeatPulsoidDataSource::LateStart(){
+void HeartBeatPulsoidDataSource::LateStart() {
     // setup websocket
     ix::WebSocketHttpHeaders headers;
     headers["User-Agent"] = getModUserAgent(true);
     websocket.setExtraHeaders(headers);
     websocket.setOnMessageCallback(
-        std::bind(&HeartBeatPulsoidDataSource::onWebSocketMessage, this,
-                    std::placeholders::_1));
+        std::bind(&HeartBeatPulsoidDataSource::onWebSocketMessage, this, std::placeholders::_1));
     websocket.setPingInterval(15);
 }
 
-void HeartBeatPulsoidDataSource::ResetConnection(){
-    runBackground([this](){
+void HeartBeatPulsoidDataSource::ResetConnection() {
+    runBackground([this]() {
         websocket.stop();
-        if(getModConfig().PulsoidToken.GetValue() == getModConfig().PulsoidToken.GetDefaultValue()){
-            runInUnityThread([this](){
-                status = LANG->pulsoid_no_token;
-            });
-            return ;
+        if (getModConfig().PulsoidToken.GetValue() == getModConfig().PulsoidToken.GetDefaultValue()) {
+            runInUnityThread([this]() { status = LANG->pulsoid_no_token; });
+            return;
         }
-        runInUnityThread([this](){
-            status = LANG->hyperate_con_start;
-        });
-        websocket.setUrl("ws://dev.pulsoid.net/api/v1/data/real_time?response_mode=text_plain_only_heart_rate&access_token=" + getModConfig().PulsoidToken.GetValue());
+        runInUnityThread([this]() { status = LANG->hyperate_con_start; });
+        websocket.setUrl(
+            "ws://dev.pulsoid.net/api/v1/data/real_time?response_mode=text_plain_only_heart_rate&access_token=" +
+            getModConfig().PulsoidToken.GetValue());
         websocket.start();
         getLogger().info("websocket connection opened executed");
     });
 }
 
-void HeartBeatPulsoidDataSource::onWebSocketMessage(const ix::WebSocketMessagePtr& ptr){
-    if(!ptr)
+void HeartBeatPulsoidDataSource::onWebSocketMessage(const ix::WebSocketMessagePtr& ptr) {
+    if (!ptr)
         return;
-    if (ptr->type == ix::WebSocketMessageType::Error)
-    {
+    if (ptr->type == ix::WebSocketMessageType::Error) {
         std::stringstream ss;
-        ss << "Error: "         << ptr->errorInfo.reason      << std::endl;
-        ss << "#retries: "      << ptr->errorInfo.retries     << std::endl;
-        ss << "Wait time(ms): " << ptr->errorInfo.wait_time   << std::endl;
-        ss << "HTTP Status: "   << ptr->errorInfo.http_status << std::endl;
+        ss << "Error: " << ptr->errorInfo.reason << std::endl;
+        ss << "#retries: " << ptr->errorInfo.retries << std::endl;
+        ss << "Wait time(ms): " << ptr->errorInfo.wait_time << std::endl;
+        ss << "HTTP Status: " << ptr->errorInfo.http_status << std::endl;
         getLogger().error("Websocket error: \n{}", ss.str());
 
-        runInUnityThread([this, reason = ptr->errorInfo.reason, retry = ptr->errorInfo.retries](){
-          std::stringstream ss;
-          ss << LANG->hyperate_network_error; // << reason; the token is inside the reason. so hide it
-          if(retry > 0){
-            ss << "\n" << LANG->hyperate_retry << "(" << retry << ")";
-          }
-          status = ss.str();
+        runInUnityThread([this, reason = ptr->errorInfo.reason, retry = ptr->errorInfo.retries]() {
+            std::stringstream ss;
+            ss << LANG->hyperate_network_error; // << reason; the token is inside the reason. so hide it
+            if (retry > 0) {
+                ss << "\n" << LANG->hyperate_retry << "(" << retry << ")";
+            }
+            status = ss.str();
         });
 
         return;
     }
 
-    if (ptr->type == ix::WebSocketMessageType::Open){
-        runInUnityThread([this](){
-            status = LANG->hyperate_connected;
-        });
+    if (ptr->type == ix::WebSocketMessageType::Open) {
+        runInUnityThread([this]() { status = LANG->hyperate_connected; });
     }
-    if(ptr->type != ix::WebSocketMessageType::Message)
+    if (ptr->type != ix::WebSocketMessageType::Message)
         return;
-    auto & payload = ptr->str;
-    if(payload.size() > 0 && payload.size() < 10){
+    auto& payload = ptr->str;
+    if (payload.size() > 0 && payload.size() < 10) {
         the_heart = atoi(payload.c_str());
         has_unread_heart_data = true;
     }
 }
 
 
-bool HeartBeatPulsoidDataSource::GetData(int&heartbeat){
-    if(has_unread_heart_data)
-    {
+bool HeartBeatPulsoidDataSource::GetData(int& heartbeat) {
+    if (has_unread_heart_data) {
         has_unread_heart_data = false;
         heartbeat = the_heart;
         return true;
@@ -118,17 +112,17 @@ bool HeartBeatPulsoidDataSource::GetData(int&heartbeat){
     return false;
 }
 
-void HeartBeatPulsoidDataSource::OnNewReader(){
+void HeartBeatPulsoidDataSource::OnNewReader() {
     auto state = websocket.getReadyState();
-    if(!closed && state == ix::ReadyState::Closed){
+    if (!closed && state == ix::ReadyState::Closed) {
         // we need connect to socket
         ResetConnection();
     }
 }
 
-void HeartBeatPulsoidDataSource::Update(){
-    if(keep_alive_url.has_value() && keep_alive_total_request_count < 40){
-        if(keep_alive_timer-- < 0){
+void HeartBeatPulsoidDataSource::Update() {
+    if (keep_alive_url.has_value() && keep_alive_total_request_count < 40) {
+        if (keep_alive_timer-- < 0) {
             keep_alive_timer = 60 * 40;
             keep_alive_total_request_count++;
             httpGetUrl(keep_alive_url.value());
@@ -137,50 +131,50 @@ void HeartBeatPulsoidDataSource::Update(){
 
     static int counter = 0;
     counter++;
-    if(counter % (60 * 20) == 0){
+    if (counter % (60 * 20) == 0) {
         // check the socket connection
         auto state = websocket.getReadyState();
-        if(!closed && state == ix::ReadyState::Closed){
+        if (!closed && state == ix::ReadyState::Closed) {
             // we need connect to socket
-            if(UIManager::getInstance()->hasReader()){
+            if (UIManager::getInstance()->hasReader()) {
                 ResetConnection();
             }
         }
     }
-
 }
 
-void HeartBeatPulsoidDataSource::RequestSafePair(std::function<void(void)> ondone_unity, std::function<void(std::string /* reason */)> onfail_unity){
-    runBackground([this, ondone_unity, onfail_unity](){
+void HeartBeatPulsoidDataSource::RequestSafePair(std::function<void(void)> ondone_unity,
+                                                 std::function<void(std::string /* reason */)> onfail_unity) {
+    runBackground([this, ondone_unity, onfail_unity]() {
         websocket.stop();
         getModConfig().PulsoidToken.SetValue(getModConfig().PulsoidToken.GetDefaultValue());
 
         getLogger().info("Start safe pair");
-        httpGetUrl(SERVER_HOST "/pulsoid/safe/start", [this, ondone_unity, onfail_unity](ix::HttpResponsePtr resp){
-            if(!resp){
+        httpGetUrl(SERVER_HOST "/pulsoid/safe/start", [this, ondone_unity, onfail_unity](ix::HttpResponsePtr resp) {
+            if (!resp) {
                 runInUnityThread(std::bind(onfail_unity, "Invalid HTTP response"));
                 return;
             }
-            if(resp->statusCode != 200){
+            if (resp->statusCode != 200) {
                 runInUnityThread(std::bind(onfail_unity, "Invalid HTTP response"));
                 return;
             }
             std::string& pair_token = resp->body;
-            if(pair_token[0] == '?'){
+            if (pair_token[0] == '?') {
                 runInUnityThread(std::bind(onfail_unity, pair_token.substr(1)));
                 return;
             }
-            if(pair_token.size() <= 0 || pair_token.size() > 80){
+            if (pair_token.size() <= 0 || pair_token.size() > 80) {
                 runInUnityThread(std::bind(onfail_unity, "Server error, check your internet"));
                 return;
             }
 
-            
-            runInUnityThread([this, pair_token, ondone_unity](){
+
+            runInUnityThread([this, pair_token, ondone_unity]() {
                 this->token_url = std::string(SERVER_HOST "/pulsoid/safe/token?token=") + pair_token;
                 this->keep_alive_url = SERVER_HOST "/pulsoid/safe/keep_alive?token=" + pair_token;
                 this->keep_alive_timer = 0;
-                this->keep_alive_total_request_count=0;
+                this->keep_alive_total_request_count = 0;
 
                 OpenWebpage(SERVER_HOST "/pulsoid/safe/redir?token=" + pair_token);
                 ondone_unity();
@@ -189,28 +183,31 @@ void HeartBeatPulsoidDataSource::RequestSafePair(std::function<void(void)> ondon
     });
 }
 
-void HeartBeatPulsoidDataSource::SafePairDone(std::function<void(void)> ondone, std::function<void(void)> onpending/* user clicked done button, but actually not done */, std::function<void(std::string)> onfail){
+void HeartBeatPulsoidDataSource::SafePairDone(
+    std::function<void(void)> ondone,
+    std::function<void(void)> onpending /* user clicked done button, but actually not done */,
+    std::function<void(std::string)> onfail) {
     keep_alive_url = {};
     keep_alive_timer = 0;
     keep_alive_total_request_count = 0;
-    if(this->token_url){
-        runBackground([this, ondone, onfail, onpending, token_url = this->token_url.value()](){
-            httpGetUrl(token_url, [this, ondone, onfail, onpending](ix::HttpResponsePtr resp){
-                if(!resp){
+    if (this->token_url) {
+        runBackground([this, ondone, onfail, onpending, token_url = this->token_url.value()]() {
+            httpGetUrl(token_url, [this, ondone, onfail, onpending](ix::HttpResponsePtr resp) {
+                if (!resp) {
                     onfail("Invalid response");
-                    return ;
+                    return;
                 }
-                if(resp->statusCode != 200){
+                if (resp->statusCode != 200) {
                     onfail("Invalid response code");
                     return;
                 }
                 std::string& token = resp->body;
-                if(token.size() == 0){
+                if (token.size() == 0) {
                     onfail("Invalid token");
                     return;
                 }
-                if(token[0] == '?'){
-                    if(token == "?authorization_pending"){
+                if (token[0] == '?') {
+                    if (token == "?authorization_pending") {
                         onpending();
                         return;
                     }
@@ -219,31 +216,26 @@ void HeartBeatPulsoidDataSource::SafePairDone(std::function<void(void)> ondone, 
                     return;
                 }
 
-                if(
-                    (token[0] >= 'a' && token[0] <= 'z')
-                    || (token[0] >= 'A' && token[0] <= 'Z')
-                    || (token[0] >= '0' && token[0] <= '9')
-                    || token[0] == '-'
-                ){
+                if ((token[0] >= 'a' && token[0] <= 'z') || (token[0] >= 'A' && token[0] <= 'Z') ||
+                    (token[0] >= '0' && token[0] <= '9') || token[0] == '-') {
                     getModConfig().PulsoidToken.SetValue(token);
                     ondone();
-                }else{
+                } else {
                     getLogger().error("Pair failed, invalid token: {}", token.c_str());
                     onfail("Invalid token");
                 }
             });
         });
-    }else{
+    } else {
         onfail("Invalid token url");
     }
-
 }
 
-void HeartBeatPulsoidDataSource::SafePairCancel(){
+void HeartBeatPulsoidDataSource::SafePairCancel() {
     this->token_url = {};
     this->keep_alive_url = {};
     this->keep_alive_timer = 0;
-    this->keep_alive_total_request_count=0;
+    this->keep_alive_total_request_count = 0;
 }
 
-}
+} // namespace HeartBeat

@@ -7,41 +7,43 @@
 #include <functional>
 #include <optional>
 
-namespace HeartBeat{
+namespace HeartBeat {
 
-class HeartBeatHypeRateDataSource:public DataSource{
-    private:
-        volatile int the_heart;
-        volatile bool has_unread_heart_data = false;
-        
-        bool closed = false; // set to true to close the thread
+class HeartBeatHypeRateDataSource : public DataSource {
+private:
+    volatile int the_heart;
+    volatile bool has_unread_heart_data = false;
 
-        void CreateSocket();
+    bool closed = false; // set to true to close the thread
 
-        bool resetRequest = false;
+    void CreateSocket();
 
-        // this member should only be used in background thread
-        ix::WebSocket websocket;
-        public:
-        HeartBeatHypeRateDataSource();
-        bool GetData(int& heartbeat) override;
-        
-        void SetHyperateID(std::string id);
-        void RestartSocket(std::optional<std::function<void(void)>> callback_unity = {});
-        
-        void Update() override;
-        void LateStart() override;
-        
-        void OnNewReader() override;
+    bool resetRequest = false;
 
-        NetworkStatus status;
-        std::optional<std::string> serverMessage;
-    private:
-        // execute in websocket thread
-        void onWebSocketMessage(const ix::WebSocketMessagePtr& ptr);
-        void handleServerPayload(const std::string & type, rapidjson::Document & d);
-        void handleHyperatePaylod(rapidjson::Document & d);
+    // this member should only be used in background thread
+    ix::WebSocket websocket;
+
+public:
+    HeartBeatHypeRateDataSource();
+    bool GetData(int& heartbeat) override;
+
+    void SetHyperateID(std::string id);
+    void RestartSocket(std::optional<std::function<void(void)>> callback_unity = {});
+
+    void Update() override;
+    void LateStart() override;
+
+    void OnNewReader() override;
+
+    NetworkStatus status;
+    std::optional<std::string> serverMessage;
+
+private:
+    // execute in websocket thread
+    void onWebSocketMessage(const ix::WebSocketMessagePtr& ptr);
+    void handleServerPayload(const std::string& type, rapidjson::Document& d);
+    void handleHyperatePaylod(rapidjson::Document& d);
 };
 
 
-}
+} // namespace HeartBeat

@@ -1,8 +1,8 @@
 #pragma once
 
-namespace HeartBeat{
+namespace HeartBeat {
 
-enum DataSourceType{
+enum DataSourceType {
     DS_RANDOM,
     DS_LAN,
     DS_BLE,
@@ -14,26 +14,24 @@ enum DataSourceType{
 
 bool IsDatasourceAbleToRecord();
 
-class DataSource{
+class DataSource {
 public:
     const DataSourceType dataSourceType;
 
-    DataSource(DataSourceType ty):dataSourceType(ty){ }
+    DataSource(DataSourceType ty)
+        : dataSourceType(ty) {}
 
-    virtual void LateStart(){};
+    virtual void LateStart() {};
 
     virtual bool GetData(int& heartbeat) = 0;
     virtual long long GetEnergy() { return 0; };
-    virtual void Update() { };
+    virtual void Update() {};
 
     virtual void OnNewReader() {};
-    template<typename T>
-    T * as(){
-        return dynamic_cast<T*>(this);
-    }
+    template <typename T> T* as() { return dynamic_cast<T*>(this); }
 
-    static DataSource * getInstance();
+    static DataSource* getInstance();
 };
-    
 
-};//namespace HeartBeat
+
+}; // namespace HeartBeat

@@ -2,12 +2,12 @@
 
 #include "data_sources/DataSource.hpp"
 namespace HeartBeat {
-    struct SettingsSnapshot{
-        SettingsSnapshot();
+struct SettingsSnapshot {
+    SettingsSnapshot();
 
-        bool ModEnabled;
-        HeartBeat::DataSourceType DataSourceType;
+    bool ModEnabled;
+    HeartBeat::DataSourceType DataSourceType;
 
-        static SettingsSnapshot * getInstance();  
-    };
-}
+    static SettingsSnapshot* getInstance();
+};
+} // namespace HeartBeat

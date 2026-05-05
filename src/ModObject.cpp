@@ -12,9 +12,9 @@ DEFINE_TYPE(HeartBeat, ModObject);
 
 namespace HeartBeat {
 
-void InitModObject(){
+void InitModObject() {
     static std::once_flag initModObjFlag;
-    std::call_once(initModObjFlag,[](){
+    std::call_once(initModObjFlag, []() {
         auto obj = UnityEngine::GameObject::New_ctor();
         obj->set_name("HeartBeatQuestModLifeCycleObject");
         obj->AddComponent<ModObject*>();
@@ -22,31 +22,28 @@ void InitModObject(){
     });
 }
 
-void runInUnityThread(std::function<void ()> func){
+void runInUnityThread(std::function<void()> func) {
     BSML::MainThreadScheduler::Schedule(func);
 }
 
-void ModObject::Start(){
+void ModObject::Start() {
     UnityEngine::GameObject::DontDestroyOnLoad(gameObject);
 }
 
-void ModObject::Update(){
+void ModObject::Update() {
     HeartBeat::SettingsUI::Update();
     HeartBeat::DataHub::getInstance()->Update();
 }
 
 
-void ModObject::OnDestroy(){
+void ModObject::OnDestroy() {}
 
-}
-
-void ModObject::OnApplicationQuit(){
-
-    if(JavaModHelper::instance){
+void ModObject::OnApplicationQuit() {
+    if (JavaModHelper::instance) {
         JavaModHelper::instance->OnModExit();
     }
 
     terminateBackground();
 }
 
-}
+} // namespace HeartBeat

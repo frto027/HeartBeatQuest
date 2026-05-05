@@ -23,14 +23,12 @@
 #include <time.h>
 
 inline double now_ms(void) {
-
     struct timespec res;
     clock_gettime(CLOCK_REALTIME, &res);
-    return 1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6;
-
+    return 1000.0 * res.tv_sec + (double)res.tv_nsec / 1e6;
 }
-namespace HeartBeat{
-namespace Recorder{
+namespace HeartBeat {
+namespace Recorder {
 
 bool needRecord = false;
 bool recordStarted = false;
@@ -41,14 +39,14 @@ bool needReplay = false;
 bool replayStarted = false;
 int currentDataToReplay = -1;
 
-//don't record too often
+// don't record too often
 float_t lastRecordSongTime = -1000;
 #define MIN_REDORD_TIME_INVERVAL 0.3f
 
-std::optional<bool(*)(void)> IsInReplay;
-std::optional<bool(*)(void)> IsInRender;
+std::optional<bool (*)(void)> IsInReplay;
+std::optional<bool (*)(void)> IsInRender;
 
-struct RecordEntry{
+struct RecordEntry {
     float timestamp;
     unsigned int heartrate;
 };
@@ -56,19 +54,19 @@ std::vector<RecordEntry> recordData;
 std::string heartDeviceName = HEART_DEV_NAME_UNK;
 std::mutex heartDeviceNameLock;
 
-void SetHeartDeviceName(std::string name){
+void SetHeartDeviceName(std::string name) {
     std::lock_guard<std::mutex> g(heartDeviceNameLock);
     heartDeviceName = name;
 }
-std::string GetHeartDeviceName(){
+std::string GetHeartDeviceName() {
     std::lock_guard<std::mutex> g(heartDeviceNameLock);
     return heartDeviceName;
 }
 
 
-//this callback is called by beatleader when game end
-void RecordCallback(std::string name, int* length, void** data){
-    if(recordStarted == false)
+// this callback is called by beatleader when game end
+void RecordCallback(std::string name, int* length, void** data) {
+    if (recordStarted == false)
         return;
     recordStarted = false;
 
@@ -76,35 +74,35 @@ void RecordCallback(std::string name, int* length, void** data){
 
     datas.clear();
 
-    auto PushUInt32 = [](unsigned int x){
+    auto PushUInt32 = [](unsigned int x) {
         x = htole32(x);
-        uint8_t * d = (uint8_t*)&x;
+        uint8_t* d = (uint8_t*)&x;
         datas.push_back(d[0]);
         datas.push_back(d[1]);
         datas.push_back(d[2]);
         datas.push_back(d[3]);
     };
-    auto PushFloat = [](float x){
-        uint8_t * d = (uint8_t*)&x;
+    auto PushFloat = [](float x) {
+        uint8_t* d = (uint8_t*)&x;
         datas.push_back(d[0]);
         datas.push_back(d[1]);
         datas.push_back(d[2]);
         datas.push_back(d[3]);
     };
-    auto PushStr = [&](const char * str){
+    auto PushStr = [&](const char* str) {
         size_t len = strlen(str);
         PushUInt32(len);
-        for(int i=0;i<len;i++){
+        for (int i = 0; i < len; i++) {
             datas.push_back(str[i]);
         }
     };
-    auto PushCppStr = [&](const std::string& str){
+    auto PushCppStr = [&](const std::string& str) {
         size_t len = str.size();
         PushUInt32(len);
-        for(int i=0;i<len;i++){
+        for (int i = 0; i < len; i++) {
             datas.push_back(str[i]);
         }
-    };    
+    };
     size_t recordCount = recordData.size();
 
     getLogger().info("encoding {} heart record to replay.", recordCount);
@@ -112,20 +110,20 @@ void RecordCallback(std::string name, int* length, void** data){
     PushUInt32(1); // version
 
     PushUInt32(recordCount);
-    for(int i=0;i<recordCount;i++){
+    for (int i = 0; i < recordCount; i++) {
         PushFloat(recordData[i].timestamp);
         PushUInt32(recordData[i].heartrate);
     }
 
-    if(getModConfig().EnableRecord.GetValue() && getModConfig().RecordDevName.GetValue()){
+    if (getModConfig().EnableRecord.GetValue() && getModConfig().RecordDevName.GetValue()) {
         std::lock_guard<std::mutex> g(heartDeviceNameLock);
         PushCppStr(heartDeviceName);
-    }else{
+    } else {
         PushStr(HEART_DEV_NAME_HIDE);
     }
-    
+
     // v_bs is build variant, not the actual game version.
-    const char * hrAgent = "HeartBeatQuest/" VERSION " (bs_" GAME_VERSION ")";
+    const char* hrAgent = "HeartBeatQuest/" VERSION " (bs_" GAME_VERSION ")";
 
     PushStr(hrAgent);
 
@@ -135,31 +133,33 @@ void RecordCallback(std::string name, int* length, void** data){
     recordData.clear();
 }
 
-// ReplayCallback(HeartBeatQuest) -> ReplayCallback(HRCounter) -> SinglePlayerInstallBindings(ReplayCallbackShouldCleanData=true) -> Play the replay in game play
-// bool ReplayCallbackShouldCleanData = true;
+// ReplayCallback(HeartBeatQuest) -> ReplayCallback(HRCounter) ->
+// SinglePlayerInstallBindings(ReplayCallbackShouldCleanData=true) -> Play the replay in game play bool
+// ReplayCallbackShouldCleanData = true;
 
-//this callback is called by replay mod
-void ReplayCallback(const char * buff, size_t length, std::string sourceName){
-    recordStarted = false;// just make sure we have no bugs, it's already true here.
+// this callback is called by replay mod
+void ReplayCallback(const char* buff, size_t length, std::string sourceName) {
+    recordStarted = false; // just make sure we have no bugs, it's already true here.
 
     // if(ReplayCallbackShouldCleanData){
     //     ReplayCallbackShouldCleanData = false;
-        // replayStarted = false;
-        recordData.clear();
+    // replayStarted = false;
+    recordData.clear();
     // }else{
     //     ReplayCallbackShouldCleanData = true;
     // }
 
-    if(buff == nullptr || length == 0){
+    if (buff == nullptr || length == 0) {
         getLogger().info("no replay data detected, or length is zero.");
         return;
     }
 
-    //feed the recordData
+    // feed the recordData
     int i = 0;
-    auto GetUInt32 = [&](unsigned int &x){
-        uint8_t *d = (uint8_t *)&x;
-        if(i + 4 >= length) return false;
+    auto GetUInt32 = [&](unsigned int& x) {
+        uint8_t* d = (uint8_t*)&x;
+        if (i + 4 >= length)
+            return false;
         d[0] = buff[i++];
         d[1] = buff[i++];
         d[2] = buff[i++];
@@ -167,47 +167,48 @@ void ReplayCallback(const char * buff, size_t length, std::string sourceName){
         x = le32toh(x);
         return true;
     };
-    auto GetFloat = [&](float &x){
-        uint8_t *d = (uint8_t *)&x;
-        if(i + 4 >= length) return false;
+    auto GetFloat = [&](float& x) {
+        uint8_t* d = (uint8_t*)&x;
+        if (i + 4 >= length)
+            return false;
         d[0] = buff[i++];
         d[1] = buff[i++];
         d[2] = buff[i++];
         d[3] = buff[i++];
         return true;
     };
-    auto GetStr = [&](std::string & ret){
+    auto GetStr = [&](std::string& ret) {
         unsigned int len;
-        if(!GetUInt32(len))
+        if (!GetUInt32(len))
             return false;
-        if(i + len >= length)
+        if (i + len >= length)
             return false;
         ret = std::string(&buff[i], len);
         i += len;
         return true;
     };
-    
+
     unsigned int ver;
-    if(!GetUInt32(ver))
+    if (!GetUInt32(ver))
         return;
     getLogger().info("{}: replay data detected, version {}.", sourceName, ver);
 
-    if(ver != 1){
+    if (ver != 1) {
         getLogger().info("{}: the replay data version is not supported.", sourceName);
         return;
     }
     unsigned int recordCount;
-    if(!GetUInt32(recordCount))
+    if (!GetUInt32(recordCount))
         return;
     recordData.clear();
     replayStarted = true;
     currentDataToReplay = -1;
-    for(int i=0;i<recordCount;i++){
+    for (int i = 0; i < recordCount; i++) {
         float timestamp;
         unsigned int heartrate;
-        if(!GetFloat(timestamp))
+        if (!GetFloat(timestamp))
             return;
-        if(!GetUInt32(heartrate))
+        if (!GetUInt32(heartrate))
             return;
         // getLogger().info("timestamp {}, data {}", timestamp, heartrate);
         recordData.emplace_back(timestamp, heartrate);
@@ -215,57 +216,59 @@ void ReplayCallback(const char * buff, size_t length, std::string sourceName){
     getLogger().info("{}: {} heart rate data loaded.", sourceName, recordData.size());
 
 
-    //actually we don't care about it
-    // std::string devName;
-    // if(!GetStr(devName))
-    //     return;
+    // actually we don't care about it
+    //  std::string devName;
+    //  if(!GetStr(devName))
+    //      return;
 }
 
 GlobalNamespace::AudioTimeSyncController* audioTimeSyncController = NULL;
-MAKE_HOOK_MATCH(ScoreControllerStart, &GlobalNamespace::ScoreController::Start, void, GlobalNamespace::ScoreController* self) {
+MAKE_HOOK_MATCH(ScoreControllerStart, &GlobalNamespace::ScoreController::Start, void,
+                GlobalNamespace::ScoreController* self) {
     ScoreControllerStart(self);
     audioTimeSyncController = self->_audioTimeSyncController;
 }
 
-MAKE_HOOK_MATCH(SinglePlayerInstallBindings, &GlobalNamespace::GameplayCoreInstaller::InstallBindings, void, GlobalNamespace::GameplayCoreInstaller* self) {
+MAKE_HOOK_MATCH(SinglePlayerInstallBindings, &GlobalNamespace::GameplayCoreInstaller::InstallBindings, void,
+                GlobalNamespace::GameplayCoreInstaller* self) {
     SinglePlayerInstallBindings(self);
 
     // ReplayCallbackShouldCleanData = true;
 
-    auto DisableRecord = [](){
+    auto DisableRecord = []() {
         recordStarted = false;
         isPaused = false;
         recordData.clear();
     };
 
-    if((IsInReplay.has_value() && IsInReplay.value()()) || (IsInRender.has_value() && IsInRender.value()()) || replayStarted){
-        if(needReplay){
-            //don't clear the recordData, we need replay them
+    if ((IsInReplay.has_value() && IsInReplay.value()()) || (IsInRender.has_value() && IsInRender.value()()) ||
+        replayStarted) {
+        if (needReplay) {
+            // don't clear the recordData, we need replay them
             recordStarted = false;
-            isPaused = false;    
-        }else{
+            isPaused = false;
+        } else {
             DisableRecord();
         }
         getLogger().info("this is a replay, don't start record. replaying = {}", replayStarted);
         // the replay data should have been loaded by replay callback now.
         return;
-    }else{
+    } else {
         recordData.clear();
         replayStarted = false;
     }
 
-    if(!needRecord)
+    if (!needRecord)
         return;
 
-    if(SettingsSnapshot::getInstance()->DataSourceType == DS_RANDOM){
+    if (SettingsSnapshot::getInstance()->DataSourceType == DS_RANDOM) {
         DisableRecord();
         getLogger().info("random datasource will not enable record.");
         return;
-
     }
 
 
-    if(!(getModConfig().EnableRecord.GetValue())){
+    if (!(getModConfig().EnableRecord.GetValue())) {
         DisableRecord();
         getLogger().info("the player doesn't enable record, don't start record.");
         return;
@@ -278,47 +281,53 @@ MAKE_HOOK_MATCH(SinglePlayerInstallBindings, &GlobalNamespace::GameplayCoreInsta
     isPaused = false;
 }
 
-MAKE_HOOK_MATCH(LevelPause, &GlobalNamespace::PauseMenuManager::ShowMenu, void, GlobalNamespace::PauseMenuManager* self) {
+MAKE_HOOK_MATCH(LevelPause, &GlobalNamespace::PauseMenuManager::ShowMenu, void,
+                GlobalNamespace::PauseMenuManager* self) {
     LevelPause(self);
     isPaused = true;
 }
 
-MAKE_HOOK_MATCH(LevelUnpause, &GlobalNamespace::PauseMenuManager::HandleResumeFromPauseAnimationDidFinish, void, GlobalNamespace::PauseMenuManager* self) {
+MAKE_HOOK_MATCH(LevelUnpause, &GlobalNamespace::PauseMenuManager::HandleResumeFromPauseAnimationDidFinish, void,
+                GlobalNamespace::PauseMenuManager* self) {
     LevelUnpause(self);
     isPaused = false;
 }
 
-bool BeatLeaderDetected(){
-    return !!CondDeps::FindUnsafe<void, std::string, std::function<void(std::string, int*, void**)> >("bl", "AddReplayCustomDataProvider");
+bool BeatLeaderDetected() {
+    return !!CondDeps::FindUnsafe<void, std::string, std::function<void(std::string, int*, void**)>>(
+        "bl", "AddReplayCustomDataProvider");
 }
 
-void Init(){
-    auto AddReplayCustomDataProvider = CondDeps::FindUnsafe<void, std::string, std::function<void(std::string, int*, void**)> >("bl", "AddReplayCustomDataProvider");
+void Init() {
+    auto AddReplayCustomDataProvider =
+        CondDeps::FindUnsafe<void, std::string, std::function<void(std::string, int*, void**)>>(
+            "bl", "AddReplayCustomDataProvider");
 
-    if(AddReplayCustomDataProvider.has_value()){
+    if (AddReplayCustomDataProvider.has_value()) {
         getLogger().info("Beatleader is detected, enable record support");
         needRecord = true;
         AddReplayCustomDataProvider.value()("HeartBeatQuest", RecordCallback);
     }
 
-    #ifdef WITH_REPLAY
-    auto AddReplayCustomDataCallback = CondDeps::FindUnsafe<void, std::string, std::function<void(const char*, size_t)> >("replay", "AddReplayCustomDataCallback");
-    if(AddReplayCustomDataCallback.has_value()){
+#ifdef WITH_REPLAY
+    auto AddReplayCustomDataCallback =
+        CondDeps::FindUnsafe<void, std::string, std::function<void(const char*, size_t)>>(
+            "replay", "AddReplayCustomDataCallback");
+    if (AddReplayCustomDataCallback.has_value()) {
         getLogger().info("Replay mod is detected, enable replay support");
         needReplay = true;
-        AddReplayCustomDataCallback.value()("HeartBeatQuest", [](const char *buff, size_t length){
-            ReplayCallback(buff, length, "HeartBeatQuest");
-        });
+        AddReplayCustomDataCallback.value()(
+            "HeartBeatQuest", [](const char* buff, size_t length) { ReplayCallback(buff, length, "HeartBeatQuest"); });
         // currently, compat with HRCounter is not considered because it doesn't support record
         // AddReplayCustomDataCallback.value()("HeartBeatQuest", [](const char *buff, size_t length){
         //     ReplayCallback(buff, length, "HRCounter");
         // });
     }
-    #endif
+#endif
     IsInReplay = CondDeps::FindUnsafe<bool>("replay", "IsInReplay");
     IsInRender = CondDeps::FindUnsafe<bool>("replay", "IsInRender");
 
-    if(needRecord || needReplay){
+    if (needRecord || needReplay) {
         INSTALL_HOOK(getLogger(), ScoreControllerStart);
         INSTALL_HOOK(getLogger(), SinglePlayerInstallBindings);
         INSTALL_HOOK(getLogger(), LevelPause);
@@ -327,11 +336,11 @@ void Init(){
 }
 
 
-void RecordDataIfNeeded(int heartrate){
-    if(needRecord && audioTimeSyncController && recordStarted && !isPaused){
+void RecordDataIfNeeded(int heartrate) {
+    if (needRecord && audioTimeSyncController && recordStarted && !isPaused) {
         float_t now = audioTimeSyncController->songTime;
 
-        if(now >= lastRecordSongTime && now < lastRecordSongTime + MIN_REDORD_TIME_INVERVAL)
+        if (now >= lastRecordSongTime && now < lastRecordSongTime + MIN_REDORD_TIME_INVERVAL)
             return;
         lastRecordSongTime = now;
         // getLogger().info("recording {} {}", audioTimeSyncController->songTime, heartrate);
@@ -339,42 +348,43 @@ void RecordDataIfNeeded(int heartrate){
     }
 }
 
-bool isReplaying(){
+bool isReplaying() {
     return replayStarted;
 }
-bool ReplayGetData(int &heartrate){
-    //auto beg_time = now_ms();
+bool ReplayGetData(int& heartrate) {
+    // auto beg_time = now_ms();
 
-    auto isInSection = [](int index){
-        return index >= 0 && index < recordData.size() && recordData[index].timestamp <= audioTimeSyncController->songTime &&   
-            (index + 1 >= recordData.size() || recordData[index+1].timestamp > audioTimeSyncController->songTime);
+    auto isInSection = [](int index) {
+        return index >= 0 && index < recordData.size() &&
+               recordData[index].timestamp <= audioTimeSyncController->songTime &&
+               (index + 1 >= recordData.size() || recordData[index + 1].timestamp > audioTimeSyncController->songTime);
     };
-    if(replayStarted && audioTimeSyncController){
-        if(isInSection(currentDataToReplay)){
+    if (replayStarted && audioTimeSyncController) {
+        if (isInSection(currentDataToReplay)) {
             // getLogger().info("in section");
             return false;
         }
-        if(isInSection(currentDataToReplay+1)){
+        if (isInSection(currentDataToReplay + 1)) {
             currentDataToReplay++;
             heartrate = recordData[currentDataToReplay].heartrate;
             return true;
         }
 
-        //this only happens when player changes the replay progress
-        // getLogger().debug("search from {} datas", recordData.size());
-        for(int i=0;i<recordData.size();i++){
-            //we don't need a binary search  
-            if(isInSection(i)){
+        // this only happens when player changes the replay progress
+        //  getLogger().debug("search from {} datas", recordData.size());
+        for (int i = 0; i < recordData.size(); i++) {
+            // we don't need a binary search
+            if (isInSection(i)) {
                 currentDataToReplay = i;
                 heartrate = recordData[currentDataToReplay].heartrate;
-                //auto done_time = now_ms();
-                //getLogger().debug("search done in {}ms", done_time - beg_time);
-                return true;    
+                // auto done_time = now_ms();
+                // getLogger().debug("search done in {}ms", done_time - beg_time);
+                return true;
             }
         }
     }
     return false;
 }
 
-}
-}
+} // namespace Recorder
+} // namespace HeartBeat

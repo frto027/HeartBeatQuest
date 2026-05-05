@@ -7,23 +7,23 @@
 #include "main.hpp"
 #include "settings/PreviewObj.hpp"
 
-HeartBeat::MainMenuPreviewer::MainMenuPreviewer(){
+HeartBeat::MainMenuPreviewer::MainMenuPreviewer() {
     Reload();
     Hide();
 }
 
-void HeartBeat::MainMenuPreviewer::Show(){
+void HeartBeat::MainMenuPreviewer::Show() {
     MainMenuPreviewObject->set_active(true);
     MainMenuPreviewObjectComp->addToUIManager();
 }
 
-void HeartBeat::MainMenuPreviewer::Hide(){
+void HeartBeat::MainMenuPreviewer::Hide() {
     MainMenuPreviewObjectComp->removeFromUIManager();
     MainMenuPreviewObject->set_active(false);
 }
 
-void HeartBeat::MainMenuPreviewer::Reload(){
-    if(MainMenuPreviewObject){
+void HeartBeat::MainMenuPreviewer::Reload() {
+    if (MainMenuPreviewObject) {
         UnityEngine::Object::Destroy(MainMenuPreviewObject);
         MainMenuPreviewObject = nullptr;
         MainMenuPreviewObjectComp = nullptr;
@@ -35,17 +35,17 @@ void HeartBeat::MainMenuPreviewer::Reload(){
     auto canvas = obj->AddComponent<UnityEngine::Canvas*>();
     canvas->set_renderMode(UnityEngine::RenderMode::WorldSpace);
     canvas->set_scaleFactor(0.001);
-    
+
     obj->AddComponent<HMUI::CurvedCanvasSettings*>()->_radius = 0;
 
     auto crect = canvas->GetComponent<UnityEngine::RectTransform*>();
     crect->set_position({1, 1.5, 3});
-    crect->set_localScale({0.01f,0.01f,0.01f});
+    crect->set_localScale({0.01f, 0.01f, 0.01f});
 
     std::string SelectedUI = getModConfig().SelectedUI.GetValue();
-    if(!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI))
+    if (!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI))
         SelectedUI = "Default";
-    if(!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI)){
+    if (!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI)) {
         getLogger().error("Can't find ui asset bundle '{}' to load!", SelectedUI);
     }
 
@@ -58,9 +58,9 @@ void HeartBeat::MainMenuPreviewer::Reload(){
     MainMenuPreviewObject = obj;
 }
 
-HeartBeat::MainMenuPreviewer * HeartBeat::MainMenuPreviewer::getInstance(){
-    static HeartBeat::MainMenuPreviewer * instance = nullptr;
-    if(!instance)
+HeartBeat::MainMenuPreviewer* HeartBeat::MainMenuPreviewer::getInstance() {
+    static HeartBeat::MainMenuPreviewer* instance = nullptr;
+    if (!instance)
         instance = new HeartBeat::MainMenuPreviewer();
     return instance;
 }

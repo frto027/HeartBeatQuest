@@ -4,32 +4,33 @@
 #include "i18n.hpp"
 
 namespace HeartBeat {
-    
-    class PulsoidSettings : public Settings {
-        HMUI::CurvedTextMeshPro* tokenText = nullptr;
-        bool tokenTextIsDirty = false;
 
-        UnityEngine::UI::Button *PairInBrowserBtn = nullptr, *BrowserCompleteBtn = nullptr, *CancelBrowserPairBtn = nullptr;
+class PulsoidSettings : public Settings {
+    HMUI::CurvedTextMeshPro* tokenText = nullptr;
+    bool tokenTextIsDirty = false;
 
-        HMUI::CurvedTextMeshPro* errMsgText = nullptr;
+    UnityEngine::UI::Button *PairInBrowserBtn = nullptr, *BrowserCompleteBtn = nullptr, *CancelBrowserPairBtn = nullptr;
 
-        HMUI::CurvedTextMeshPro* statusText = nullptr;
+    HMUI::CurvedTextMeshPro* errMsgText = nullptr;
 
-    public:
-        PulsoidSettings():Settings("Pulsoid Connect", LANG->pulsoid, "<3") { }
-        void CreateElements() override;
-        // void Update() override;
-        void Close() override;
+    HMUI::CurvedTextMeshPro* statusText = nullptr;
 
-        void SyncModConfig();
+public:
+    PulsoidSettings()
+        : Settings("Pulsoid Connect", LANG->pulsoid, "<3") {}
+    void CreateElements() override;
+    // void Update() override;
+    void Close() override;
 
-        void setButtonBusying();
-        void setButtonOpeningUrl();
-        void setButtonPairing();
-        void setButtonPairDone();
+    void SyncModConfig();
 
-        void Update() override;
-    };
+    void setButtonBusying();
+    void setButtonOpeningUrl();
+    void setButtonPairing();
+    void setButtonPairDone();
 
-    
-}
+    void Update() override;
+};
+
+
+} // namespace HeartBeat

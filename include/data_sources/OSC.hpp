@@ -4,9 +4,9 @@
 #include <set>
 #include <mutex>
 
-namespace HeartBeat{
+namespace HeartBeat {
 
-class HeartBeatOSCDataSource:public DataSource{
+class HeartBeatOSCDataSource : public DataSource {
 private:
     int recv_socket;
     volatile int the_heart;
@@ -16,17 +16,18 @@ private:
     std::string selected_addr;
 
     void CreateSocket();
+
 public:
     HeartBeatOSCDataSource();
     bool GetData(int& heartbeat) override;
 
-    static void * ServerThread(void *self);
+    static void* ServerThread(void* self);
     std::mutex mutex;
-    
+
     std::set<std::string> received_addresses;
-    const std::string& GetSelectedAddress(){
+    const std::string& GetSelectedAddress() {
         std::lock_guard<std::mutex> g(mutex);
-        return selected_addr; 
+        return selected_addr;
     }
     void SetSelectedAddr(const std::string& mac);
 
@@ -35,10 +36,11 @@ public:
     void StartMDns();
     void StopMDns();
     void OnMDnsDevNameChanged(std::string name);
+
 private:
-    //in background thread
-    void parseOscMessage(char *&thebuff, ssize_t &sz);
+    // in background thread
+    void parseOscMessage(char*& thebuff, ssize_t& sz);
 };
 
 
-}
+} // namespace HeartBeat

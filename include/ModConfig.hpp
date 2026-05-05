@@ -3,7 +3,7 @@
 #include "config-utils/shared/config-utils.hpp"
 #include <string>
 
-// Declare the mod config as "ModConfiguration" and declare all its values and functions.
+// clang-format off
 
 #if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0) || defined(GAME_VER_1_37_0)
 DECLARE_CONFIG(ModConfig,
@@ -49,3 +49,5 @@ DECLARE_CONFIG(ModConfig){
 #else
 };
 #endif
+
+// clang-format on

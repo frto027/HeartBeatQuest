@@ -1,14 +1,14 @@
 #pragma once
 #include <mutex>
 #include <string>
-namespace HeartBeat{
-namespace Recorder{
+namespace HeartBeat {
+namespace Recorder {
 
 void Init();
 void RecordDataIfNeeded(int heartrate);
 
 bool isReplaying();
-bool ReplayGetData(int&heartrate);
+bool ReplayGetData(int& heartrate);
 
 bool BeatLeaderDetected();
 
@@ -23,6 +23,5 @@ void SetHeartDeviceName(std::string name);
 std::string GetHeartDeviceName();
 
 extern bool replayStarted;
-}
-}
-
+} // namespace Recorder
+} // namespace HeartBeat

@@ -4,24 +4,25 @@
 #include "i18n.hpp"
 
 namespace HeartBeat {
-    
-    class HypeRateSettings : public Settings {
-    public:
-        HypeRateSettings():Settings("HypeRate Connect", LANG->hyperate, "<3") { }
-        void CreateElements() override;
 
-        std::string hyperate_id;
+class HypeRateSettings : public Settings {
+public:
+    HypeRateSettings()
+        : Settings("HypeRate Connect", LANG->hyperate, "<3") {}
+    void CreateElements() override;
 
-        void Update() override;
-    private:
-        std::vector<UnityEngine::UI::Button*> buttons;
-        void disableBtns();
-        void enableBtns();
+    std::string hyperate_id;
 
-        HMUI::CurvedTextMeshPro* statusText;
-        HMUI::CurvedTextMeshPro* serverMessageText;
+    void Update() override;
 
-    };
+private:
+    std::vector<UnityEngine::UI::Button*> buttons;
+    void disableBtns();
+    void enableBtns();
 
-    
-}
+    HMUI::CurvedTextMeshPro* statusText;
+    HMUI::CurvedTextMeshPro* serverMessageText;
+};
+
+
+} // namespace HeartBeat

@@ -1,3 +1,3 @@
 #include "java/ModHelper.h"
 
-HeartBeat::JavaModHelper * HeartBeat::JavaModHelper::instance = nullptr;
+HeartBeat::JavaModHelper* HeartBeat::JavaModHelper::instance = nullptr;

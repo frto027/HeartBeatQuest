@@ -1,8 +1,8 @@
 #include "UIManager.hpp"
 
-HeartBeat::UIManager * HeartBeat::UIManager::getInstance(){
+HeartBeat::UIManager* HeartBeat::UIManager::getInstance() {
     static UIManager* manager = nullptr;
-    if(!manager)
+    if (!manager)
         manager = new UIManager();
     return manager;
 }

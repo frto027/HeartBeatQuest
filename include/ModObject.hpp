@@ -5,7 +5,8 @@
 
 #include <functional>
 
-// parameters are (namespace, class name, parent class, contents)
+// clang-format off
+
 #if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0) || defined(GAME_VER_1_37_0)
 DECLARE_CLASS_CODEGEN(HeartBeat, ModObject, UnityEngine::MonoBehaviour,
 #else
@@ -23,9 +24,11 @@ DECLARE_CLASS_CODEGEN(HeartBeat, ModObject, UnityEngine::MonoBehaviour){
 };
 #endif
 
-namespace HeartBeat{
+// clang-format on
 
-    void InitModObject();
-    void runInUnityThread(std::function<void(void)>);
+namespace HeartBeat {
 
-}
+void InitModObject();
+void runInUnityThread(std::function<void(void)>);
+
+} // namespace HeartBeat

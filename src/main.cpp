@@ -42,7 +42,9 @@
 #include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
 #include "beatsaber-hook/shared/utils/hooking.hpp"
 
+// clang-format off
 static modloader::ModInfo modInfo = {MOD_ID, VERSION, 0}; // Stores the ID and version of our mod, and is sent to the modloader upon startup
+// clang-format on
 std::string modConfigFilePath = "unk";
 
 // Called at the early stages of game loading
@@ -50,7 +52,7 @@ extern "C" void setup(CModInfo& info) {
     info.id = MOD_ID;
     info.version = VERSION;
     modInfo.assign(info);
-	
+
     getModConfig().Init(modInfo);
 
     modConfigFilePath = Configuration::getConfigFilePath(modInfo);
@@ -59,29 +61,31 @@ extern "C" void setup(CModInfo& info) {
 
     HeartBeat::SettingsSnapshot::getInstance();
 
-    if(HeartBeat::SettingsSnapshot::getInstance()->ModEnabled){
+    if (HeartBeat::SettingsSnapshot::getInstance()->ModEnabled) {
         HeartBeat::LoadJavaLibraryIfNeeded();
         HeartBeat::DataSource::getInstance();
     }
 }
 
-Paper::ConstLoggerContext<21> & getLogger(){
+Paper::ConstLoggerContext<21>& getLogger() {
     static Paper::ConstLoggerContext<21> logger = Paper::ConstLoggerContext("HeartBeatLanReceiver");
     return logger;
 }
-MAKE_HOOK_MATCH(GameplayCoreHook, &GlobalNamespace::CoreGameHUDController::Initialize, void, GlobalNamespace::CoreGameHUDController * self, GlobalNamespace::CoreGameHUDController::InitData * data){
+MAKE_HOOK_MATCH(GameplayCoreHook, &GlobalNamespace::CoreGameHUDController::Initialize, void,
+                GlobalNamespace::CoreGameHUDController* self, GlobalNamespace::CoreGameHUDController::InitData* data) {
     GameplayCoreHook(self, data);
 
     static int firstInitialize = true;
-    if(firstInitialize){
+    if (firstInitialize) {
         firstInitialize = false;
-        if(HeartBeat::SettingsSnapshot::getInstance()->DataSourceType == HeartBeat::DS_BLE){
-            HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatBleDataSource>()->SetSelectedBleMac(getModConfig().SelectedBleMac.GetValue(), {});
+        if (HeartBeat::SettingsSnapshot::getInstance()->DataSourceType == HeartBeat::DS_BLE) {
+            HeartBeat::DataSource::getInstance()->as<HeartBeat::HeartBeatBleDataSource>()->SetSelectedBleMac(
+                getModConfig().SelectedBleMac.GetValue(), {});
         }
     }
 
-    #ifdef WITH_QOUNTERS
-    if(HeartBeat::Qounters::Enabled() && !getModConfig().IgnoreQounters.GetValue()){
+#ifdef WITH_QOUNTERS
+    if (HeartBeat::Qounters::Enabled() && !getModConfig().IgnoreQounters.GetValue()) {
         getLogger().info("Qounters enabled, will not load mod UI.Loading qounters feeder object");
         HeartBeat::AssetBundleInstinateInformation result; // there is no asset bundle with qounters
         result.gameObject = UnityEngine::GameObject::New_ctor();
@@ -90,34 +94,39 @@ MAKE_HOOK_MATCH(GameplayCoreHook, &GlobalNamespace::CoreGameHUDController::Initi
         comp->isQountersMode = true;
         return;
     }
-    #endif
+#endif
 
     HeartBeat::assetBundleMgr.Init();
 
     std::string SelectedUI = getModConfig().SelectedUI.GetValue();
-    if(!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI))
+    if (!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI))
         SelectedUI = "Default";
-    if(!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI)){
+    if (!HeartBeat::assetBundleMgr.loadedBundles.contains(SelectedUI)) {
         getLogger().error("Can't find ui asset bundle '{}' to load!", SelectedUI);
         return;
     }
 
     getLogger().info("Loading '{}' at game start", SelectedUI);
 
-    UnityEngine::GameObject * parent = self->get_energyPanelGo();
-    auto & assetUI = HeartBeat::assetBundleMgr.loadedBundles[SelectedUI];
-    if(assetUI.infos.contains("root")){
+    UnityEngine::GameObject* parent = self->get_energyPanelGo();
+    auto& assetUI = HeartBeat::assetBundleMgr.loadedBundles[SelectedUI];
+    if (assetUI.infos.contains("root")) {
         std::string root_str = assetUI.infos["root"];
-        if(root_str == "energyPanelGo") parent = self->get_energyPanelGo();
-        else if(root_str == "songProgressPanelGO") parent = self->get_songProgressPanelGO();
-        else if(root_str == "relativeScoreGo") parent = self->get_relativeScoreGo();
-        else if(root_str == "immediateRankGo") parent = self->get_immediateRankGo();
-        else getLogger().info("unknown position {}, attach it to energyPanelGo", root_str);
+        if (root_str == "energyPanelGo")
+            parent = self->get_energyPanelGo();
+        else if (root_str == "songProgressPanelGO")
+            parent = self->get_songProgressPanelGO();
+        else if (root_str == "relativeScoreGo")
+            parent = self->get_relativeScoreGo();
+        else if (root_str == "immediateRankGo")
+            parent = self->get_immediateRankGo();
+        else
+            getLogger().info("unknown position {}, attach it to energyPanelGo", root_str);
     }
     getLogger().info("UI Mount position: {}", parent->get_name());
 
     HeartBeat::AssetBundleInstinateInformation result;
-    if(!HeartBeat::assetBundleMgr.Instantiate(SelectedUI, parent->get_transform(), result)){
+    if (!HeartBeat::assetBundleMgr.Instantiate(SelectedUI, parent->get_transform(), result)) {
         getLogger().error("The UI Can't loaded.");
         return;
     }
@@ -127,21 +136,19 @@ MAKE_HOOK_MATCH(GameplayCoreHook, &GlobalNamespace::CoreGameHUDController::Initi
     getLogger().info("The UI has been created");
 }
 
-MAKE_HOOK_MATCH(HeartBeatSceneChange, &UnityEngine::SceneManagement::SceneManager::SetActiveScene, bool, UnityEngine::SceneManagement::Scene scene){
-    
+MAKE_HOOK_MATCH(HeartBeatSceneChange, &UnityEngine::SceneManagement::SceneManager::SetActiveScene, bool,
+                UnityEngine::SceneManagement::Scene scene) {
     // maybe I could find a better hook site in the future.
     static std::once_flag in_game_init_flag;
-    std::call_once(in_game_init_flag, [](){
-        HeartBeat::InitModObject();
-    });
-    
+    std::call_once(in_game_init_flag, []() { HeartBeat::InitModObject(); });
+
     return HeartBeatSceneChange(scene);
 }
 
 
 // Called later on in the game loading - a good time to install function hooks
 extern "C" void late_load() {
-    getLogger().info("Loading HeartBeatQuest(" VERSION ","  GAME_VERSION ")");
+    getLogger().info("Loading HeartBeatQuest(" VERSION "," GAME_VERSION ")");
 
     il2cpp_functions::Init();
 
@@ -156,7 +163,7 @@ extern "C" void late_load() {
     getLogger().info("Installing ui...");
     HeartBeat::SettingsUI::Setup();
 
-    if(HeartBeat::SettingsSnapshot::getInstance()->ModEnabled == false){
+    if (HeartBeat::SettingsSnapshot::getInstance()->ModEnabled == false) {
         getLogger().info("The mod is not enabled");
         return;
     }
@@ -169,10 +176,10 @@ extern "C" void late_load() {
     getLogger().info("init recorder...");
     HeartBeat::Recorder::Init();
 
-    #ifdef WITH_QOUNTERS
+#ifdef WITH_QOUNTERS
     getLogger().info("try init qounters...");
     HeartBeat::Qounters::Init();
-    #endif
-    
+#endif
+
     getLogger().info("Done.");
 }
