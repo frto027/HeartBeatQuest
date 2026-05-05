@@ -6,7 +6,8 @@ The [skin](https://github.com/frto027/HeartBeatQuest-NyanCatSkin) will be availa
 
 ## 蜜汁工坊表情包
 
-This skin can be downloaded [here](https://github.com/frto027/HeartBeatQuestSkin-mizhigongfang-emoji). Install it as a mod alongside HeartBeatQuest.
+<!-- This section is Chinese-only. The skin author writes in Chinese and the target audience is Chinese players. Do not translate to English. -->
+这个皮肤可以在[这里](https://github.com/frto027/HeartBeatQuestSkin-mizhigongfang-emoji)下载。直接作为mod一起安装即可。
 
 ## Pull Requests Welcome
 
