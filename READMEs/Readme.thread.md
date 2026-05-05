@@ -1,12 +1,13 @@
 # Thread Model
 
-The mod has at least 2 thread.
+The mod has at least 2 threads:
 
-- unity thread.
-- background thread.
-- ixwebsocket threads.
+- Unity thread
+- Background thread
+- IXWebSocket threads
 
-use the following function to do things between threads:
+Use the following functions for cross-thread communication:
+
 ```cpp
 runBackground([](){
     ...
@@ -17,10 +18,10 @@ runInUnityThread([](){
 });
 ```
 
-we have a cpp event loop, that run all background in one single thread.
+There is a C++ event loop that runs all background tasks in a single thread.
 
-we have an Unity GameObject, runs every unity thread functions in queue.
+There is a Unity GameObject that processes all queued Unity thread functions.
 
-ixwebsocket create threads for every websockets/httpclients.
+IXWebSocket creates threads for each websocket/http client.
 
-We use the singleton pattern extensively, so we can freely capture the `this` pointer in lambda expressions.
+Singleton patterns are used extensively, so you can safely capture the `this` pointer in lambda expressions.

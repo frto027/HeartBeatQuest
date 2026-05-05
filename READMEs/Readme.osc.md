@@ -1,7 +1,7 @@
-## OSC as the heart data source
+## OSC as the Heart Data Source
 
-Use your favorite heart rate OSC senders, send to the port 9000 for your quest device.**If your sender program is not supported by this mod, please [let me know](https://github.com/frto027/HeartBeatQuest/issues).**
+Use your favorite heart rate OSC sender and send data to port 9000 on your Quest device. **If your sender is not supported, please [let me know](https://github.com/frto027/HeartBeatQuest/issues).**
 
-After you change the data source to OSC in the setthings menu, the port will be show in the menu, and can edit manually via config file if you need. 
+After switching to OSC in the settings menu, the port will be shown in the menu. You can edit it manually via the config file if needed.
 
-This mod support mDNS. With this function, you can just input `osc.heartbeatquest.local` instead of your quest's ip address. You can enable this feature in the OSC setthings menu. You can edit this hostname via config file manually. 
+This mod supports mDNS. With this feature, you can use `osc.heartbeatquest.local` instead of your Quest's IP address. Enable this in the OSC settings menu. The hostname can also be edited via the config file.

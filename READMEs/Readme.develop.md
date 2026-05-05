@@ -1,42 +1,41 @@
-# Development information
+# Development Information
 
-## How it works for Bluetooth device
+## Bluetooth Device Support
 
-This mod uses [JNI](https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/jniTOC.html) to load an external java library with [PathClassLoader](https://developer.android.com/reference/dalvik/system/PathClassLoader) to access bluetooth device.
+This mod uses [JNI](https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/jniTOC.html) to load an external Java library via [PathClassLoader](https://developer.android.com/reference/dalvik/system/PathClassLoader) for Bluetooth access.
 
-The Bluetooth access code at `AndroidProject/HeartBeatNative` can be compiled with AndroidStudio and Android SDK 34.
+The Bluetooth code at `AndroidProject/HeartBeatNative` can be compiled with Android Studio and Android SDK 34.
 
-## The threads
+## Thread Model
 
-refer to [Readme.thread.md](Readme.thread.md).
+See [Readme.thread.md](Readme.thread.md).
 
-## How to build
+## How to Build
 
-**make sure you have cloned the submodules.**
+**Make sure you have cloned the submodules:**
 ```sh
 git clone --recursive git@github.com:frto027/HeartBeatQuest.git
 ```
 
-You need an environment variable `ANDROID_NDK_HOME` with proper value. Do NOT use `ndkpath.txt`.
+Set the `ANDROID_NDK_HOME` environment variable. Do **not** use `ndkpath.txt`.
 
-mod build: `qpm restore && qpm s build`  
-mod debug: `qpm s copy`  
-mod release: `qpm qmod zip`  
+- Build: `qpm restore && qpm s build`
+- Debug: `qpm s copy`
+- Release: `qpm qmod zip`
 
-This mod is avaliable for multiple game versions. See [multibuild](../multibuild) directory about switch build config for different game versions.
+This mod supports multiple game versions. See the [multibuild](../multibuild) directory for switching build configs between versions.
 
-This mod's java code is hard coded into the C source. See [extra/Readme.md](../extra/Readme.md) if you want compile the java code.
+The mod's Java code is compiled into the C source. See [extra/Readme.md](../extra/Readme.md) if you need to compile the Java code.
 
-
-## Mod api
+## Mod API
 
 ### Basic API Usage
 
-Copy `shared/HeartBeatApi.h` file to your mod. It is header-only, so you don't need a hard dependency.
+Copy `shared/HeartBeatApi.h` into your mod. It is header-only, so no hard dependency is needed.
 
-The file is clean, and only depends on `scotland2` mod loader.
+The file is clean and only depends on the `scotland2` mod loader.
 
-for example in your mod:
+For example, in your mod:
 
 ```cpp
 #include "HeartBeatApi.h"
@@ -51,16 +50,16 @@ void Update(){
         heartBeatApi->Update();
         int data;
         if(heartBeatApi->GetData(&data)){
-            //new data come in this frame
+            // new data came in this frame
         }else{
-            //old buffered data got
+            // old buffered data retrieved
         }
-        // the result of GetData will not chaned until you call heartBeatApi->Update() at next game update cycle
+        // The result of GetData() will not change until
+        // you call heartBeatApi->Update() at the next game update cycle.
     }
 }
 ```
 
-### API ChangeLog
+### API Changelog
 
-- `0.3.6` The mod id will be changed to `HeartBeatQuest` for game version larger than `v1.40.8`(not included). Add support for the new mod id.
-
+- `0.3.6` — The mod ID will change to `HeartBeatQuest` for game versions greater than `v1.40.8` (not inclusive). Added support for the new mod ID.

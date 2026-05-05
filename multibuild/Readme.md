@@ -1,21 +1,21 @@
-# What inside this folder
+# What's Inside This Folder
 
-This folder saves different qpm manifest that can be used for multiple game version.
+This folder contains different QPM manifests for multiple game versions.
 
-The `target.cmake` is included in `CMakeLists.txt` and for code compat.
+The `target.cmake` file is included in `CMakeLists.txt` for code compatibility.
 
-The main idea is release multiple `.qmod` with the same source code, to make sure the old version of game can receive the latest update for the mod.
+The main idea is to release multiple `.qmod` files from the same source code, so older game versions can still receive the latest updates.
 
-# what we do at version switch
+# Version Switching
 
-All `.json` describe a replace rule for each json, and other files will be replaced directly.
+Each `.json` file describes replacement rules for the corresponding QPM manifest. Other files are replaced directly.
 
-`qpm.shared.json` will not in the git, let qpm decide which version should we use.
+`qpm.shared.json` is not tracked in git — QPM decides which version to use.
 
-avaliable cpp macros:
-- some macro will be defined, e.g. `GAME_VER_1_35_0`
-- a macro string called `GAME_VERSION`, example value:`"1_35_0"`
+Available C++ macros:
+- Game-version macros, e.g. `GAME_VER_1_35_0`
+- A string macro called `GAME_VERSION`, e.g. `"1_35_0"`
 
-# auto update mod versions
+# Auto-Update Mod Versions
 
-this folder contains some script that can auto update the mod dependency when the game has small changes that doesn't affect this mod.
+This folder also contains scripts that automatically update mod dependencies when the game receives small changes that don't affect this mod.

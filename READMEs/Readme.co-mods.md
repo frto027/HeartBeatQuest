@@ -1,7 +1,6 @@
 # Supported Mods
 
-This mod is able to work with the following other mods:
-- [BeatLeader](https://github.com/BeatLeader/beatleader-qmod), record your heart rate in to the record file.
-- [Replay](https://github.com/Metalit/Replay), display the recorded heart rate in the record file when replaying.
+This mod works with the following other mods:
 
-
+- [BeatLeader](https://github.com/BeatLeader/beatleader-qmod) — records your heart rate into the replay file.
+- [Replay](https://github.com/Metalit/Replay) — displays the recorded heart rate when watching a replay.

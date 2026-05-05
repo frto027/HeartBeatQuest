@@ -1,27 +1,24 @@
-## Bluetooth device as the data source
+## Bluetooth Device as the Data Source
 
-This mod can access Bluetooth directly. To use this, follow this instruction.
+This mod can access Bluetooth directly. To use it, follow these steps:
 
-1. patch the game with the `bluetooth` permission via [mbf](https://mbf.bsquest.xyz/), which is the recommand way to mod the beatsaber now.
-1. install this mod via mbf.
-2. In your quest bluetooth setthings, pair your heart rate BLE device with your quest.
-3. Open the game, scan and select your device in the device list menu.
+1. Patch the game with the `bluetooth` permission via [MBF](https://mbf.bsquest.xyz/) (the recommended way to mod Beat Saber).
+2. Install this mod via MBF.
+3. In your Quest's Bluetooth settings, pair your heart rate BLE device with your Quest.
+4. Open the game, scan, and select your device in the device list menu.
 
-The Bluetooth data source has minimum data latency, but may be less compatibility because it uses a generic BLE protocol to access Bluetooth devices. Your device should support heart rate broadcast via BLE protocol.
+The Bluetooth data source has minimal data latency, but may have less compatibility because it uses a generic BLE protocol. Your device should support heart rate broadcast over BLE.
 
 > [!NOTE]
 > Bluetooth permission is not required if you don't use this data source.
 
-**Reconnect**
-In case you have trouble with your current connection. If you select `None` in the device list, your device will be disconnected.
-Then you can reselect your device to reconnect it.
+**Reconnect**  
+If you have trouble with your current connection, select `None` in the device list to disconnect, then reselect your device to reconnect.
 
 **Auto Reconnect**  
-From version `0.4.0`, the mod will auto scan devices in the first 20 seconds when game start if there's enough permission.
-If it find any device that has same mac address with last connect, the mod will try to auto connect that device.  
-Scan will consume your quest's battery, so if your hr device is not avaliable in this time window, you need manually start scan in the device list.
+From version `0.4.0`, the mod will automatically scan for devices in the first 20 seconds after game start (if sufficient permission is granted). If it finds a device with the same MAC address as the last connection, it will try to auto-connect.  
+
+Scanning consumes battery, so if your HR device is not available within this window, you'll need to manually start a scan from the device list.
 
 **Manual Permission Patch**  
-Please refer to [Bluetooth Permission Guide](https://github.com/frto027/HeartBeatQuest/wiki/Bluetooth-Permission-Guide)
-
-
+See the [Bluetooth Permission Guide](https://github.com/frto027/HeartBeatQuest/wiki/Bluetooth-Permission-Guide).

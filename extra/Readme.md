@@ -1,7 +1,7 @@
-The `HeartBeatBLEReader.dex` is compiled from `/AndroidProject/HeartBeatNative`, and extract from
+The `HeartBeatBLEReader.dex` file is compiled from `/AndroidProject/HeartBeatNative` and extracted from:
 `AndroidProject\HeartBeatNative\nativeblereader\build\outputs\apk\release\nativeblereader-release.apk`
 
-1. build the AndroidProject/HeartBeatNative with AndroidStudio
-2. extract the apk file, copy the `classes.dex` and rename it to `HeartBeatBLEReader.dex` here.
-3. in the project's root directory, run `python update_resources.py`.
-4. recompile the program.
+1. Build `AndroidProject/HeartBeatNative` with Android Studio.
+2. Extract the APK, copy the `classes.dex` file, and rename it to `HeartBeatBLEReader.dex` here.
+3. From the project root, run `python update_resources.py`.
+4. Recompile the program.

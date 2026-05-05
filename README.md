@@ -5,55 +5,53 @@
 [![QMOD BUILD](https://github.com/frto027/HeartBeatQuest/actions/workflows/qmod_build.yml/badge.svg)](https://github.com/frto027/HeartBeatQuest/actions/workflows/qmod_build.yml) ![GitHub Release](https://img.shields.io/github/v/release/frto027/HeartBeatQuest?include_prereleases)
 
 > [!TIP]
-> This mod is for the quest platform. For PC platform you should use [HRCounter](https://github.com/qe201020335/HRCounter). 
+> This mod is for the Quest platform. For PC, use [HRCounter](https://github.com/qe201020335/HRCounter). 
 
 [中文简要说明](./READMEs/README.cn.md)
 
-View your heart rate inside the BeatSaber quest game.
-
+View your heart rate inside Beat Saber on Quest.
 
 # Brief Usage
 
-After you patch the mod(e.g. with [mbf](https://mbf.bsquest.xyz/), with or without `bluetooth` permission), you can configure it inside the game via a button on your left side. Change the data source and restart the game, and it works.
+After patching the mod (e.g. with [MBF](https://mbf.bsquest.xyz/), with or without `bluetooth` permission), you can configure it in-game via a button on your left side. Change the data source and restart the game, and it works.
 
 > [!NOTE]
 > **HEART RATE RECORD**  
-> This mod will automatically record your heart rate to beatleader's replay file if the beatleader-qmod is detected. You can disable this feature inside the mod setthings.
+> This mod will automatically record your heart rate to BeatLeader's replay file if BeatLeader-qmod is detected. You can disable this feature in the mod settings.
 
 > [!TIP]
 > **MOD ROADMAP**  
-> If you have any suggestions about this mod, you are welcome to open an issue.
+> Suggestions are welcome — feel free to open an issue!
 
-# Mod Document
+# Documentation
 
 [Bluetooth permission guide for MBF](READMEs/ModsBeforeFridayGuide/BLE.md)
 
-[Data source config document](READMEs/Readme.datasource.md).
+[Data source configuration](READMEs/Readme.datasource.md)
 
-[Mod skin document](READMEs/Readme.skin.md).
+[Mod skin document](READMEs/Readme.skin.md)
 
-[collaboration mod document](READMEs/Readme.co-mods.md).
+[Collaboration mod document](READMEs/Readme.co-mods.md)
 
-[costom ui document](READMEs/Readme.ui.md).
+[Custom UI document](READMEs/Readme.ui.md)
 
-[development document](READMEs/Readme.develop.md).
-
+[Development document](READMEs/Readme.develop.md)
 
 # Other Information
 
-For mod version unrelated information, like Replay data format and supported game information, please refer to the mod [wiki](https://github.com/frto027/HeartBeatQuest/wiki)
+For version-independent information (replay data format, supported game versions, etc.), please refer to the [wiki](https://github.com/frto027/HeartBeatQuest/wiki).
 
 # Credits
 
-This mod is created by frto027.
+Created by frto027.
 
-And thanks to everyone who has directly or indirectly supported this mod.
+Thanks to everyone who has directly or indirectly supported this mod:
 
-* [zoller27osu](https://github.com/zoller27osu), [Sc2ad](https://github.com/Sc2ad) and [jakibaki](https://github.com/jakibaki) - [beatsaber-hook](https://github.com/sc2ad/beatsaber-hook)
+* [zoller27osu](https://github.com/zoller27osu), [Sc2ad](https://github.com/Sc2ad) and [jakibaki](https://github.com/jakibaki) — [beatsaber-hook](https://github.com/sc2ad/beatsaber-hook)
 * [raftario](https://github.com/raftario)
 * [Lauriethefish](https://github.com/Lauriethefish), [danrouse](https://github.com/danrouse) and [Bobby Shmurner](https://github.com/BobbyShmurner) for [this template](https://github.com/Lauriethefish/quest-mod-template)
-* NSGolova - [beatleader](https://github.com/BeatLeader/beatleader-qmod) for record  and webreplay support
-* And other developers is BSMG Discord channel.
-* [Hyperate](https://www.hyperate.io) provide api support.
-* [Pulsoid](https://pulsoid.net/) provide api support. 
-* [IXWebsocket](https://github.com/machinezone/IXWebSocket) for websocketclient/httpclient.
+* NSGolova — [BeatLeader](https://github.com/BeatLeader/beatleader-qmod) for replay and webreplay support
+* And other developers in the BSMG Discord channel
+* [Hyperate](https://www.hyperate.io) — API support
+* [Pulsoid](https://pulsoid.net/) — API support
+* [IXWebSocket](https://github.com/machinezone/IXWebSocket) — websocket/http client
