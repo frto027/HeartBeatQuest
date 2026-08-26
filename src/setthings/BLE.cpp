@@ -88,7 +88,7 @@ void HeartBeat::BleSettings::UpdateSelectedBLEScrollList() {
     }
 
     int select_cell_idx = -1;
-    int index = 0;
+    int index = 1;
 
     BluetoothDeviceItem *noneItem = (BluetoothDeviceItem *)ble_list->data->get_Item(0);
     if (selected == "")
@@ -111,7 +111,7 @@ void HeartBeat::BleSettings::UpdateSelectedBLEScrollList() {
             select_cell_idx = index;
         index++;
     }
-    if (index > ble_list->data.size()) {
+    if (index < ble_list->data.size()) {
         ble_list->data->RemoveRange(index, ble_list->data.size() - index);
         changed = true;
     }
