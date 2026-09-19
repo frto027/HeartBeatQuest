@@ -56,3 +56,9 @@ Thanks to everyone who has directly or indirectly supported this mod:
 * [Hyperate](https://www.hyperate.io) — API support
 * [Pulsoid](https://pulsoid.net/) — API support
 * [IXWebSocket](https://github.com/machinezone/IXWebSocket) — websocket/http client
+
+# License
+
+Unless explicitly stated otherwise, anything in this repository is unlicensed. In particular, just as all of the unlicenced codes, you must not redistribute the self-compiled software in public, nor use it as a basis for AI replication.
+
+Please feel free to ask me if you have any usecase. This section is intended to emphasize points for those unfamiliar with the license, rather than to make the license more restrictive.
