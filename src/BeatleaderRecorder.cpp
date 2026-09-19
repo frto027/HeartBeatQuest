@@ -234,6 +234,11 @@ MAKE_HOOK_MATCH(ScoreControllerStart, &GlobalNamespace::ScoreController::Start, 
     ScoreControllerStart(self);
     audioTimeSyncController = self->_audioTimeSyncController;
 }
+MAKE_HOOK_MATCH(ScoreControllerDestroy, &GlobalNamespace::ScoreController::OnDestroy, void,
+                GlobalNamespace::ScoreController *self) {
+    ScoreControllerDestroy(self);
+    audioTimeSyncController = nullptr;
+}
 
 MAKE_HOOK_MATCH(SinglePlayerInstallBindings, &GlobalNamespace::GameplayCoreInstaller::InstallBindings, void,
                 GlobalNamespace::GameplayCoreInstaller *self) {
@@ -340,6 +345,7 @@ void Init() {
 
     if (needRecord || needReplay) {
         INSTALL_HOOK(getLogger(), ScoreControllerStart);
+        INSTALL_HOOK(getLogger(), ScoreControllerDestroy);
         INSTALL_HOOK(getLogger(), SinglePlayerInstallBindings);
         INSTALL_HOOK(getLogger(), LevelPause);
         INSTALL_HOOK(getLogger(), LevelUnpause);
