@@ -348,20 +348,21 @@ public class BleReader {
             return false;
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
-            if(ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+            if(context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
                 permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
 
             if(permissionHint == PermissionHint.PAIRED_ONLY){
-                if(ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED)
+                if(context.checkSelfPermission(Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED)
                     permissions.add(Manifest.permission.BLUETOOTH);
             }else{
-                if(ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED)
+                if(context.checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED)
                     permissions.add(Manifest.permission.BLUETOOTH_SCAN);
             }
         }else{
-            if(ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED)
+            if(context.checkSelfPermission(Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED)
                 permissions.add(Manifest.permission.BLUETOOTH);
-            if(ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED)
+
+            if(context.checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED)
                 permissions.add(Manifest.permission.BLUETOOTH_ADMIN);
         }
 
@@ -369,17 +370,21 @@ public class BleReader {
 
         if(permissionHint == PermissionHint.GOOD_LOCATION_REQUIRED){
             // this is optional if player only wants connect bounded devices, but we will add it.
-            if(ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            if(context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                 permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
 
         if(requirePermissions && !permissions.isEmpty()){
-            ActivityCompat.requestPermissions((Activity)context, permissions.toArray(new String[0]), 1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ((Activity)context).requestPermissions(
+                    permissions.toArray(new String[0]),
+                    1
+                );
+            }
         }
 
         return ret;
     }
-
 
 
     private BluetoothLeScanner leScanner;
