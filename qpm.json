@@ -6,7 +6,7 @@
   "info": {
     "name": "HeartBeatQuest",
     "id": "HeartBeatLanReceiver",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "url": "https://github.com/frto027/HeartBeatQuest",
     "additionalData": {
       "overrideSoName": "libHeartBeatQuest.so",
