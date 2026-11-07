@@ -2,21 +2,7 @@
 include(qpm_defines.cmake)
 include(target.cmake)
 
-# override mod id
-if(
-        (TARGET_GAME_VERSION STREQUAL "1_28_0") OR
-        (TARGET_GAME_VERSION STREQUAL "1_35_0") OR
-        (TARGET_GAME_VERSION STREQUAL "1_37_0") OR
-        (TARGET_GAME_VERSION STREQUAL "1_40_4") OR
-        (TARGET_GAME_VERSION STREQUAL "1_40_6") OR
-        (TARGET_GAME_VERSION STREQUAL "1_40_7") OR
-        (TARGET_GAME_VERSION STREQUAL "1_40_8")
-        )
-        set(MOD_ID "HeartBeatLanReceiver")
-else()
-        set(MOD_ID "HeartBeatQuest")
-endif()
-
+set(MOD_ID "HeartBeatLanReceiver")
 
 # Enable link time optimization
 # In my experience, this can be highly unstable but it nets a huge size optimization and likely performance
