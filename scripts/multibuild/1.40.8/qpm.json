@@ -54,7 +54,7 @@
     },
     {
       "id": "sslocalization",
-      "versionRange": "^0.6.2",
+      "versionRange": "^0.7.0",
       "additionalData": {}
     }
   ]
