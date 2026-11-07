@@ -3,6 +3,7 @@
 #include "DataSource.hpp"
 #include <set>
 #include <mutex>
+#include <string>
 
 namespace HeartBeat {
 

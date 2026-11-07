@@ -28,7 +28,11 @@ class Settings {
 
     bool m_isActive = false;
 
+#ifdef GAME_VER_1_40_8
     SafePtr<BSML::MenuButton> menuButton;
+#else
+    safe_ptr<BSML::MenuButton *> menuButton;
+#endif
     bool registered = false;
     BSML::MainMenuRegistration *mainMenuRegistraction;
 
@@ -65,16 +69,16 @@ class Settings {
         this->menuButton = BSML::MenuButton::Make_new(
             SSL10n::Get(buttonText), hoverHint, std::bind(&BSML::MainMenuRegistration::Present, mainMenuRegistraction));
 
-        registered = BSML::Register::RegisterMenuButton(&*this->menuButton);
+        registered = BSML::Register::RegisterMenuButton(menuButton.ptr());
 
         SSL10n::OnLanguageChangeCallback += [this]() {
             if (SSL10n::Get(buttonText) != menuButton->text) {
                 if (registered) {
-                    BSML::Register::UnRegisterMenuButton(&*this->menuButton);
+                    BSML::Register::UnRegisterMenuButton(menuButton.ptr());
                     this->menuButton = BSML::MenuButton::Make_new(
                         SSL10n::Get(buttonText), hoverHint,
                         std::bind(&BSML::MainMenuRegistration::Present, mainMenuRegistraction));
-                    registered = BSML::Register::RegisterMenuButton(&*this->menuButton);
+                    registered = BSML::Register::RegisterMenuButton(menuButton.ptr());
                 }
             }
         };

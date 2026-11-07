@@ -1,6 +1,7 @@
 #include "ModConfig.hpp"
 #include "QountersDriver.hpp"
 #include "SettingsSnapshot.hpp"
+#include "System/String.hpp"
 #include "TMPro/TextAlignmentOptions.hpp"
 #include "TMPro/TextMeshProUGUI.hpp"
 #include "TMPro/TextMeshPro.hpp"
@@ -125,13 +126,13 @@ void AssetBundleManager::Init() {
 
     auto LoadAssetBundle = [this](UnityEngine::AssetBundle *bundle, std::optional<std::string> filepath) {
         auto assetNamesUnity = bundle->GetAllAssetNames();
-        std::vector<std::string> assetPaths = {assetNamesUnity->begin(), assetNamesUnity->end()};
+        std::vector<std::string> assetPaths = {assetNamesUnity.begin(), assetNamesUnity.end()};
         for (auto assetPath : assetPaths) {
             getLogger().info("Start load {}", assetPath);
-#if defined(GAME_VER_1_28_0) || defined(GAME_VER_1_35_0)
-            auto // SafePtrUnity not work here, just use auto for compat
-#else
+#ifdef GAME_VER_1_40_8
             SafePtrUnity<UnityEngine::GameObject>
+#else
+            safe_ptr<UnityEngine::GameObject *>
 #endif
                 gameObject = bundle->LoadAsset<UnityEngine::GameObject *>(assetPath);
             if (gameObject) {
@@ -235,7 +236,7 @@ void HandleTransformsInBundle(AssetBundleInstinateInformation &result, UnityEngi
     {
         auto tm = transform->GetComponent<TMPro::TMP_Text *>();
         if (tm) {
-            if (transform->get_name()->Equals("auto:heartrate")) {
+            if (transform->get_name() == "auto:heartrate") {
                 result.heartrateTexts.push_back(tm);
             }
         }

@@ -2,6 +2,7 @@
 
 #include "DataSource.hpp"
 #include <atomic>
+#include <functional>
 #include <mutex>
 #include <optional>
 #include <string>

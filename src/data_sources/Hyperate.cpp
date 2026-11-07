@@ -111,10 +111,12 @@ void HeartBeatHypeRateDataSource::onWebSocketMessage(const ix::WebSocketMessageP
         // id = "internal-testing";
         rapidjson::Document dom;
         dom.SetObject();
-        dom.AddMember("_id", CheckHypeRateWebSocketIdentity(), dom.GetAllocator());
-        dom.AddMember("id", id, dom.GetAllocator());
-        dom.AddMember("ver", VERSION, dom.GetAllocator());
-        dom.AddMember("forgame", GAME_VERSION, dom.GetAllocator());
+        auto &allocator = dom.GetAllocator();
+        auto identity = CheckHypeRateWebSocketIdentity();
+        dom.AddMember("_id", rapidjson::Value(identity.data(), identity.size(), allocator), allocator);
+        dom.AddMember("id", rapidjson::Value(id.data(), id.size(), allocator), allocator);
+        dom.AddMember("ver", VERSION, allocator);
+        dom.AddMember("forgame", GAME_VERSION, allocator);
 
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

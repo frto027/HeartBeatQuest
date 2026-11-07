@@ -18,6 +18,7 @@ jobs:
       matrix:
         game-version: [
           # __NEW_VERSION_INSERT_POINT__
+          "1.45.3",
           # "1.42.0",
           "1.40.8",
           # "1.40.7",
@@ -54,7 +55,6 @@ jobs:
         path: HeartBeatQuest*.qmod
         overwrite: true
     - uses: actions/upload-artifact@v4
-      if: ${{ matrix.game-version == '1.40.8' }}
       with:
         name: debug_so.${{ matrix.game-version }}
         path: build/debug/libHeartBeatQuest.so

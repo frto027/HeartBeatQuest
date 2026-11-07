@@ -11,9 +11,11 @@
 #include <string>
 #include <arpa/inet.h>
 #include <sys/endian.h>
-#include "beatsaber-hook/shared/utils/logging.hpp"
-#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#ifdef GAME_VER_1_40_8
 #include "beatsaber-hook/shared/utils/hooking.hpp"
+#else
+#include "beatsaber-hook/shared/hooking.hpp"
+#endif
 #include "GlobalNamespace/ScoreController.hpp"
 #include "GlobalNamespace/AudioTimeSyncController.hpp"
 #include "GlobalNamespace/GameplayCoreInstaller.hpp"

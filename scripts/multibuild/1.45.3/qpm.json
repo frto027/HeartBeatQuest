@@ -1,0 +1,63 @@
+{
+  "workspace.qmodOutput": "HeartBeatQuest.1_45_3.qmod",
+  "workspace.ndk": "29.0.14206865",
+  "dependencies": [
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^9.4.3",
+      "additionalData": {}
+    },
+    {
+      "id": "scotland2",
+      "versionRange": "^0.1.7",
+      "additionalData": {
+        "includeQmod": false
+      }
+    },
+    {
+      "id": "custom-types",
+      "versionRange": "^0.21.2",
+      "additionalData": {}
+    },
+    {
+      "id": "bs-cordl",
+      "versionRange": "^4503.0.0",
+      "additionalData": {}
+    },
+    {
+      "id": "config-utils",
+      "versionRange": "^3.0.0",
+      "additionalData": {}
+    },
+    {
+      "id": "reflectcpp",
+      "versionRange": "^0.25.0",
+      "additionalData": {}
+    },
+    {
+      "id": "paper2_scotland2",
+      "versionRange": "^4.8.0",
+      "additionalData": {}
+    },
+    {
+      "id": "bsml",
+      "versionRange": "^0.6.5",
+      "additionalData": {}
+    },
+    {
+      "id": "conditional-dependencies",
+      "versionRange": "=0.3.0",
+      "additionalData": {}
+    },
+    {
+      "id": "flamingo",
+      "versionRange": "^1.2.1",
+      "additionalData": {}
+    },
+    {
+      "id": "sslocalization",
+      "versionRange": "^0.16.0",
+      "additionalData": {}
+    }
+  ]
+}

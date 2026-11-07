@@ -1,5 +1,6 @@
 {
   "workspace.qmodOutput": "HeartBeatQuest.1_40_8.qmod",
+  "workspace.ndk": "27.3.13750724",
   "info.id": "HeartBeatLanReceiver",
   "dependencies": [
     {

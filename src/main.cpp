@@ -22,8 +22,13 @@
 #include "UnityEngine/GameObject.hpp"
 #include "scotland2/shared/loader.hpp"
 
-#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#ifdef GAME_VER_1_40_8
 #include "beatsaber-hook/shared/utils/hooking.hpp"
+#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#else
+#include "beatsaber-hook/shared/hooking.hpp"
+#include "beatsaber-hook/shared/utils.hpp"
+#endif
 
 #ifdef WITH_QOUNTERS
 #include "qppopt/shared/api.hpp"
@@ -42,7 +47,11 @@ extern "C" void setup(CModInfo &info) {
 
     getModConfig().Init(modInfo);
 
+#ifdef GAME_VER_1_40_8
     modConfigFilePath = Configuration::getConfigFilePath(modInfo);
+#else
+    modConfigFilePath = get_config_path(modInfo);
+#endif
 
     getLogger().info("Completed setup!");
 
@@ -131,7 +140,11 @@ MAKE_HOOK_MATCH(HeartBeatSceneChange, &UnityEngine::SceneManagement::SceneManage
 extern "C" void late_load() {
     getLogger().info("Loading HeartBeatQuest(" VERSION "," GAME_VERSION ")");
 
+#ifdef GAME_VER_1_40_8
     il2cpp_functions::Init();
+#else
+    i2c::functions::initialize();
+#endif
 
     custom_types::Register::AutoRegister();
 

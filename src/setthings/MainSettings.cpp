@@ -1,7 +1,11 @@
 #include "BeatLeaderRecorder.hpp"
 #include "ModConfig.hpp"
 #include "System/Object.hpp"
+#ifdef GAME_VER_1_40_8
 #include "beatsaber-hook/shared/utils/typedefs-string.hpp"
+#else
+#include "beatsaber-hook/shared/stringw.hpp"
+#endif
 #include "data_sources/DataSource.hpp"
 #include "SSL10nGenerated.hpp"
 #include "main.hpp"

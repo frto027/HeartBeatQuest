@@ -7,6 +7,10 @@
 #include "custom-types/shared/macros.hpp"
 #include "TMPro/TextMeshPro.hpp"
 #include <map>
+#include <optional>
+#include <set>
+#include <string>
+#include <vector>
 #include "UnityEngine/Animator.hpp"
 
 namespace HeartBeat {
