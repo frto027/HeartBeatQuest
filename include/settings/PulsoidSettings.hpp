@@ -17,7 +17,7 @@ class PulsoidSettings : public Settings {
 
   public:
     PulsoidSettings()
-        : Settings("HEART_BEAT_QUEST_SETTHINGS_PUSLOID_TITLE", "HEART_BEAT_QUEST_SETTHINGS_PUSLOID_BUTTON", "<3") {}
+        : Settings("HEART_BEAT_QUEST_SETTHINGS_PULSOID_TITLE", "HEART_BEAT_QUEST_SETTHINGS_PULSOID_BUTTON", "<3") {}
     void CreateElements() override;
     // void Update() override;
     void Close() override;
